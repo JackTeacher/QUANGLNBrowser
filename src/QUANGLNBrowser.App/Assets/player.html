@@ -1,0 +1,3725 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QUANGLN Player — Trình phát Video AI Vietsub & AI Lồng tiếng</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- HLS.js (Tối ưu hóa phát luồng video m3u8 siêu tốc bằng GPU) -->
+  <script src="hls.light.min.js"></script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Inter"', '"Segoe UI"', 'system-ui', '-apple-system', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
+            },
+            colors: {
+              outer: '#090C10',
+              panel: '#0F141B',
+              card: '#151C25',
+              line: '#1F2A37',
+            },
+          },
+        },
+      };
+    }
+  </script>
+
+  <style>
+    /* =========================================================================
+       QUANGLN PLAYER — DESIGN TOKENS & DYNAMIC NEON ACCENT ENGINE
+       ========================================================================= */
+    :root {
+      --bg-outer: #090C10;
+      --bg-panel: #0F141B;
+      --bg-card: #151C25;
+      --border-main: #1F2A37;
+      --text-main: #F1F5F9;
+      --text-dim: #94A3B8;
+
+      /* Dynamic Signature Accent (Default: Neon Green #1EEB7A) */
+      --accent: #1EEB7A;
+      --accent-rgb: 30, 235, 122;
+      --accent-soft: rgba(30, 235, 122, 0.13);
+      --accent-glow: rgba(30, 235, 122, 0.38);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-outer);
+      color: var(--text-main);
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Slim Cyberpunk Scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #243040;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--accent-rgb), 0.7);
+    }
+
+    /* Dynamic Accent Utilities */
+    .accent-text { color: var(--accent); }
+    .accent-bg { background-color: var(--accent); }
+    .accent-soft { background-color: var(--accent-soft); }
+    .accent-border { border-color: rgba(var(--accent-rgb), 0.45); }
+    .accent-border-strong { border-color: var(--accent); }
+    .accent-glow {
+      box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.28), inset 0 0 10px rgba(var(--accent-rgb), 0.08);
+    }
+
+    /* Neon Hairline */
+    .neon-hairline {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.75) 0%, rgba(var(--accent-rgb), 0.2) 55%, transparent 100%);
+    }
+
+    /* Custom Toggle Switch */
+    .gx-toggle {
+      position: relative;
+      width: 42px;
+      height: 23px;
+      border-radius: 999px;
+      background-color: #212B38;
+      border: 1px solid #2F3E50;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+      flex-shrink: 0;
+    }
+    .gx-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 17px;
+      height: 17px;
+      border-radius: 999px;
+      background-color: #CBD5E1;
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s;
+    }
+    .gx-toggle.on {
+      background-color: rgba(var(--accent-rgb), 0.24);
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.3);
+    }
+    .gx-toggle.on::after {
+      transform: translateX(19px);
+      background-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Custom Slim Sliders */
+    input[type="range"].gx-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: #1F2A37;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"].gx-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: var(--accent);
+      border: 2px solid #090C10;
+      box-shadow: 0 0 9px rgba(var(--accent-rgb), 0.75);
+      transition: transform 0.14s ease;
+    }
+    input[type="range"].gx-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+    }
+
+    /* Select Input */
+    .gx-select {
+      background-color: #151C25;
+      border: 1px solid #1F2A37;
+      color: #F1F5F9;
+      border-radius: 0.6rem;
+      padding: 0.42rem 2rem 0.42rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.55rem center;
+      background-size: 0.9rem;
+    }
+    .gx-select:focus {
+      border-color: var(--accent);
+    }
+
+    /* Subtitle Text Outline & Word Hover */
+    .sub-outline {
+      text-shadow:
+        -1.5px -1.5px 0 rgba(0, 0, 0, 0.92),
+         1.5px -1.5px 0 rgba(0, 0, 0, 0.92),
+        -1.5px  1.5px 0 rgba(0, 0, 0, 0.92),
+         1.5px  1.5px 0 rgba(0, 0, 0, 0.92),
+         0 2px 10px rgba(0, 0, 0, 0.85);
+    }
+    .en-word {
+      display: inline-block;
+      padding: 0 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.14s, color 0.14s;
+    }
+    .en-word:hover {
+      background-color: rgba(var(--accent-rgb), 0.3);
+      color: #FFFFFF;
+      text-decoration: underline;
+      text-decoration-color: var(--accent);
+      text-underline-offset: 3px;
+    }
+
+    /* Equalizer Animated Bars (HUD) */
+    @keyframes eqBounce {
+      0%, 100% { transform: scaleY(0.25); }
+      50% { transform: scaleY(1); }
+    }
+    .eq-bar {
+      width: 2.5px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--accent);
+      transform-origin: bottom;
+      animation: eqBounce 0.65s ease-in-out infinite;
+    }
+    .eq-bar:nth-child(2) { animation-delay: 0.15s; animation-duration: 0.52s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.3s; animation-duration: 0.72s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.1s; animation-duration: 0.6s; }
+    .eq-paused .eq-bar {
+      animation: none;
+      transform: scaleY(0.28);
+      opacity: 0.5;
+    }
+
+    /* Seek Bar Hover Effects */
+    .seek-track-wrap:hover .seek-thumb {
+      transform: translate(-50%, -50%) scale(1.2);
+      opacity: 1;
+    }
+
+    /* Right Studio Sidebar Collapse Transition */
+    #ai-studio-sidebar {
+      transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, transform 0.25s ease;
+    }
+    #ai-studio-sidebar.collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      opacity: 0;
+      border-left-width: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* Toast Animation */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast-anim {
+      animation: toastIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Video Shader Filters (Applied to <video> when active) */
+    #local-video {
+      transform: translateZ(0);
+      will-change: transform;
+      backface-visibility: hidden;
+      image-rendering: -webkit-optimize-contrast;
+    }
+    .shader-upscale {
+      filter: contrast(1.07) saturate(1.1) brightness(1.02);
+    }
+    .shader-hdr {
+      filter: contrast(1.14) saturate(1.22);
+    }
+    .shader-both {
+      filter: contrast(1.16) saturate(1.24) brightness(1.03);
+    }
+
+    /* Drag & Drop Active Ring */
+    .drop-active {
+      box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 50px rgba(var(--accent-rgb), 0.18);
+    }
+
+    /* Mobile Drawer behavior for AI Studio */
+    @media (max-width: 1023px) {
+      #ai-studio-sidebar {
+        position: fixed;
+        top: 44px;
+        right: 0;
+        bottom: 0;
+        z-index: 45;
+        width: min(92vw, 390px) !important;
+        box-shadow: -12px 0 36px rgba(0, 0, 0, 0.75);
+      }
+      #ai-studio-sidebar.collapsed {
+        transform: translateX(105%);
+        width: min(92vw, 390px) !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="flex flex-col h-screen w-screen bg-outer text-slate-100 select-none overflow-hidden">
+
+  <!-- Hidden File Inputs -->
+  <input id="local-video-input" type="file" accept="video/*,.mkv,.webm,.mp4,.mov" multiple class="hidden" />
+  <input id="local-srt-input" type="file" accept=".srt,.ass,.vtt" class="hidden" />
+
+  <!-- =========================================================================
+       1. CUSTOM FRAMELESS DESKTOP TITLE BAR
+       ========================================================================= -->
+  <header id="player-titlebar" class="flex-none h-11 bg-[#0B0F15] border-b border-line px-3 flex items-center justify-between gap-2 z-50 relative">
+    <!-- Left: Stylized Neon Q Icon + Title + Active Media Filename -->
+    <div class="flex items-center gap-2.5 min-w-0">
+      <!-- App Brand Logo (Đồng bộ 100% với QUANGLN Browser) -->
+      <div class="relative w-7 h-7 flex items-center justify-center shrink-0">
+        <div class="absolute inset-0.5 rounded-full accent-bg opacity-35 filter blur-[6px]"></div>
+        <img src="logo.png" alt="QUANGLN Logo" class="w-6 h-6 object-contain relative z-10 select-none" />
+      </div>
+
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="font-extrabold text-xs sm:text-sm tracking-tight text-white shrink-0">
+          QUANG<span class="accent-text">LN</span> <span class="font-semibold text-slate-300">Player</span>
+        </span>
+        <span class="text-slate-600 hidden sm:inline">•</span>
+        <span id="titlebar-filename" class="text-xs text-slate-300 truncate max-w-[140px] sm:max-w-[260px] md:max-w-[340px] font-medium">
+          Chưa có video nào đang phát
+        </span>
+        <!-- Technical Hardware Badge -->
+        <span id="tech-badge" class="hidden xl:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-card border border-line font-mono text-[10px] font-medium text-slate-300 shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full accent-bg"></span>
+          libmpv • D3D11VA • 4K HDR
+        </span>
+      </div>
+    </div>
+
+    <!-- Right: Theme Switcher + Quick Open + Pin + Shortcuts + Window Controls -->
+    <div class="flex items-center gap-1.5 shrink-0">
+      <!-- 4-Accent Compact Theme Switcher -->
+      <div class="hidden md:flex items-center gap-1.5 px-2 py-1 rounded-lg bg-panel border border-line mr-1" title="Đổi màu chủ đề Neon">
+        <button data-theme="neon" title="Neon Green (#1EEB7A)" class="theme-dot w-3.5 h-3.5 rounded-full bg-[#1EEB7A] ring-offset-2 ring-offset-[#0F141B] transition hover:scale-115"></button>
+        <button data-theme="crimson" title="GX Crimson (#FA1E4E)" class="theme-dot w-3.5 h-3.5 rounded-full bg-[#FA1E4E] ring-offset-2 ring-offset-[#0F141B] transition hover:scale-115"></button>
+        <button data-theme="cyan" title="Cyber Cyan (#00E5FF)" class="theme-dot w-3.5 h-3.5 rounded-full bg-[#00E5FF] ring-offset-2 ring-offset-[#0F141B] transition hover:scale-115"></button>
+        <button data-theme="purple" title="Quantum Purple (#A855F7)" class="theme-dot w-3.5 h-3.5 rounded-full bg-[#A855F7] ring-offset-2 ring-offset-[#0F141B] transition hover:scale-115"></button>
+      </div>
+
+      <!-- Quick Open File Button -->
+      <button id="btn-open-file" title="Mở tệp video từ máy tính (MP4, WebM, MKV)" class="h-7 px-2.5 rounded-lg bg-card hover:bg-[#1D2735] border border-line hover:accent-border text-[11px] font-semibold text-slate-200 flex items-center gap-1.5 transition">
+        <svg class="w-3.5 h-3.5 accent-text" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+        </svg>
+        <span class="hidden sm:inline">Mở file</span>
+      </button>
+
+      <!-- Always-on-Top Pin Toggle -->
+      <button id="btn-pin-top" title="Ghim cửa sổ luôn nổi trên cùng (Always on Top)" class="w-7 h-7 rounded-lg bg-card hover:bg-[#1D2735] border border-line flex items-center justify-center text-slate-400 hover:text-white transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 3l5 5-4 4v5l-3-3-6 6-1-1 6-6-3-3h5l4-4z"/>
+        </svg>
+      </button>
+
+      <!-- Keyboard Shortcuts Tooltip Trigger -->
+      <div class="relative group hidden sm:block">
+        <button id="btn-shortcuts-help" title="Phím tắt điều khiển" class="w-7 h-7 rounded-lg bg-card hover:bg-[#1D2735] border border-line flex items-center justify-center text-slate-400 hover:text-white transition font-mono text-[11px] font-bold">
+          ?
+        </button>
+        <div class="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute right-0 top-9 w-64 p-3 rounded-xl bg-panel/95 backdrop-blur-md border border-line shadow-2xl z-50 text-[11px] space-y-1.5">
+          <div class="font-bold text-white border-b border-line pb-1.5 mb-1">Phím tắt QUANGLN Player</div>
+          <div class="flex justify-between"><span class="text-slate-400">Phát / Tạm dừng</span><kbd class="px-1.5 py-0.5 rounded bg-card border border-line font-mono text-white">Space</kbd></div>
+          <div class="flex justify-between"><span class="text-slate-400">Tua lùi / tới 5 giây</span><kbd class="px-1.5 py-0.5 rounded bg-card border border-line font-mono text-white">← / →</kbd></div>
+          <div class="flex justify-between"><span class="text-slate-400">Bật / Tắt AI Vietsub</span><kbd class="px-1.5 py-0.5 rounded bg-card border border-line font-mono accent-text">V</kbd></div>
+          <div class="flex justify-between"><span class="text-slate-400">Bật / Tắt AI Lồng tiếng</span><kbd class="px-1.5 py-0.5 rounded bg-card border border-line font-mono accent-text">D</kbd></div>
+          <div class="flex justify-between"><span class="text-slate-400">Tắt / Mở âm thanh</span><kbd class="px-1.5 py-0.5 rounded bg-card border border-line font-mono text-white">M</kbd></div>
+          <div class="flex justify-between"><span class="text-slate-400">Toàn màn hình</span><kbd class="px-1.5 py-0.5 rounded bg-card border border-line font-mono text-white">F</kbd></div>
+        </div>
+      </div>
+
+      <div class="w-[1px] h-4 bg-line mx-0.5"></div>
+
+      <!-- Desktop Window Controls -->
+      <button id="win-min" title="Thu nhỏ" class="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+      </button>
+      <button id="win-max" title="Phóng to / Toàn màn hình" class="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+      </button>
+      <button id="win-close" title="Đóng trình phát" class="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-rose-600 hover:text-white transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="neon-hairline w-full flex-none"></div>
+
+  <!-- =========================================================================
+       2. MAIN WORKSPACE (VIDEO STAGE + COLLAPSIBLE RIGHT AI STUDIO SIDEBAR)
+       ========================================================================= -->
+  <div class="flex flex-1 min-h-0 relative overflow-hidden">
+
+    <!-- 2A. LEFT COLUMN: VIDEO VIEWPORT + BOTTOM TRANSPORT BAR -->
+    <div id="player-main-column" class="flex-1 min-w-0 flex flex-col h-full bg-outer relative">
+
+      <!-- VIDEO STAGE -->
+      <div id="video-stage" class="flex-1 min-h-0 relative bg-black flex items-center justify-center overflow-hidden group">
+        <!-- 1) Empty Stage Overlay (Hiển thị khi chưa mở video nào — không còn dữ liệu mẫu giả lập) -->
+        <div id="empty-stage-overlay" class="absolute inset-0 z-15 flex flex-col items-center justify-center gap-3.5 px-6 text-center bg-[#090C10]">
+          <div class="relative w-16 h-16 flex items-center justify-center">
+            <div class="absolute inset-1 rounded-full accent-bg opacity-35 filter blur-lg"></div>
+            <img src="logo.png" alt="QUANGLN Logo" class="w-14 h-14 object-contain relative z-10 select-none" style="filter: drop-shadow(0 0 16px rgba(var(--accent-rgb), 0.45));" />
+          </div>
+          <div class="space-y-1 max-w-md">
+            <div class="text-base font-bold text-white">QUANGLN Player — AI Vietsub &amp; AI Lồng tiếng</div>
+            <div class="text-xs text-slate-400 leading-relaxed">
+              Mở tệp video từ máy tính, kéo thả vào đây, dán link YouTube/TikTok ở tab Công cụ &amp; List, hoặc bấm <strong class="text-slate-200">Phát tách cửa sổ</strong> trên video trình duyệt.
+            </div>
+          </div>
+          <button id="btn-empty-open" type="button" class="px-4 py-2 rounded-xl accent-bg text-[#06100A] text-xs font-extrabold hover:brightness-110 transition accent-glow">
+            📂 Mở tệp video từ máy tính
+          </button>
+        </div>
+
+        <canvas id="demo-canvas" class="hidden w-full h-full block object-contain"></canvas>
+
+        <!-- 2) Real Local/Stream HTML5 <video> + Synced DASH <audio> + Real AI Vietnamese Dubbing <audio> -->
+        <video id="local-video" class="hidden w-full h-full object-contain bg-black" playsinline preload="auto" disableRemotePlayback></video>
+        <audio id="local-audio" class="hidden"></audio>
+        <audio id="ai-dub-audio" class="hidden"></audio>
+
+        <!-- Stream Resolving Loading Overlay (yt-dlp) -->
+        <div id="stream-loading-overlay" class="hidden absolute inset-0 bg-[#090C10]/90 backdrop-blur-md z-35 flex-col items-center justify-center gap-3 pointer-events-none">
+          <div class="w-12 h-12 rounded-full border-2 border-line border-t-[var(--accent)] animate-spin"></div>
+          <div id="stream-loading-text" class="text-sm font-bold text-white">Đang phân tích luồng video qua yt-dlp...</div>
+          <div class="text-xs text-slate-400">QUANGLN Player đang trích xuất luồng HD &amp; phụ đề đồng bộ</div>
+        </div>
+
+        <!-- Drag & Drop Overlay Hint -->
+        <div id="drop-overlay" class="hidden absolute inset-0 bg-[#090C10]/85 backdrop-blur-sm z-40 flex-col items-center justify-center gap-3 pointer-events-none">
+          <div class="w-16 h-16 rounded-2xl accent-soft border-2 accent-border-strong flex items-center justify-center accent-glow">
+            <svg class="w-8 h-8 accent-text" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+          </div>
+          <div class="text-base font-bold text-white">Thả tệp video (.MP4, .WebM, .MKV) hoặc phụ đề (.SRT) vào đây</div>
+          <div class="text-xs text-slate-400">QUANGLN Player sẽ tự động phát & giữ nguyên lớp AI Vietsub / AI Lồng tiếng</div>
+        </div>
+
+        <!-- FLOATING AI STATUS HUD (Top-Left) -->
+        <div id="ai-hud-bar" class="absolute top-3.5 left-3.5 z-20 flex flex-wrap items-center gap-2 pointer-events-none">
+          <!-- AI Vietsub Pill -->
+          <div id="hud-vietsub-pill" class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#090C10]/80 backdrop-blur-md border accent-border text-[11px] font-semibold text-white shadow-lg">
+            <span class="w-2 h-2 rounded-full accent-bg shadow-[0_0_8px_var(--accent)] animate-pulse"></span>
+            <span class="accent-text">AI Vietsub</span>
+            <span class="text-slate-400">•</span>
+            <span id="hud-vietsub-status" class="text-slate-200">Song ngữ</span>
+          </div>
+
+          <!-- AI Dubbing Pill -->
+          <div id="hud-dub-pill" class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#090C10]/80 backdrop-blur-md border accent-border text-[11px] font-semibold text-white shadow-lg">
+            <div id="hud-eq" class="flex items-end gap-[2px] h-3 eq-paused">
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+            </div>
+            <span class="accent-text">AI Lồng tiếng</span>
+            <span class="text-slate-400">•</span>
+            <span id="hud-dub-status" class="text-slate-200">Đa nhân vật (Sẵn sàng)</span>
+          </div>
+
+          <!-- Safe TTS Fallback Indicator (shown only if browser has no vi-VN TTS voice) -->
+          <div id="hud-tts-fallback" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 backdrop-blur-md border border-amber-500/35 text-[10px] font-medium text-amber-300">
+            <span>⚡</span>
+            <span>Mô phỏng giọng AI (Trình duyệt chưa cài gói giọng vi-VN)</span>
+          </div>
+        </div>
+
+        <!-- Center Click-to-Play Overlay / Brief Action Indicator -->
+        <button id="stage-play-overlay" aria-label="Phát video" class="absolute inset-0 z-10 flex items-center justify-center bg-black/20 opacity-0 transition-opacity duration-200 cursor-pointer">
+          <div id="big-play-circle" class="w-16 h-16 rounded-full bg-[#090C10]/80 border-2 accent-border-strong flex items-center justify-center accent-glow backdrop-blur-md scale-95 transition-transform">
+            <svg class="w-7 h-7 accent-text ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </button>
+
+        <!-- REAL-TIME SUBTITLE OVERLAY -->
+        <div id="subtitle-layer" class="absolute left-0 right-0 z-20 flex flex-col items-center px-4 sm:px-10 pointer-events-none transition-all duration-150" style="bottom: 8%;">
+          <div id="subtitle-box" class="max-w-3xl text-center rounded-xl px-4 py-2 transition-all duration-150 pointer-events-auto" style="background: rgba(9, 12, 16, 0.72);">
+            <!-- Speaker micro-tag (optional when speaking) -->
+            <div id="sub-speaker-tag" class="text-[10px] font-bold uppercase tracking-wider accent-text mb-0.5 hidden"></div>
+            <!-- Vietnamese Line -->
+            <div id="sub-vi-line" class="font-semibold text-white leading-snug sub-outline" style="font-size: 21px;"></div>
+            <!-- English / Original Line (interactive clickable words for dictionary) -->
+            <div id="sub-en-line" class="text-slate-300 leading-snug mt-1 sub-outline" style="font-size: 15px;"></div>
+          </div>
+        </div>
+
+        <!-- CỐC CỐC-STYLE MINI ENGLISH-VIETNAMESE DICTIONARY POPUP -->
+        <div id="dict-popup" class="hidden absolute z-30 w-72 rounded-xl bg-panel/95 backdrop-blur-lg border accent-border shadow-2xl p-3.5 text-left">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span id="dict-word" class="text-base font-bold text-white"></span>
+                <span id="dict-pos" class="px-1.5 py-0.5 rounded bg-card border border-line text-[10px] font-semibold accent-text"></span>
+              </div>
+              <div id="dict-ipa" class="font-mono text-[11px] text-slate-400 mt-0.5"></div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button id="dict-speak-btn" title="Nghe phát âm tiếng Anh" class="w-7 h-7 rounded-lg bg-card hover:bg-[#1E2938] border border-line flex items-center justify-center accent-text transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+              </button>
+              <button id="dict-close-btn" class="w-7 h-7 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
+            </div>
+          </div>
+          <div id="dict-meaning" class="text-xs text-slate-200 leading-relaxed mt-2 pt-2 border-t border-line"></div>
+          <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+            <span class="accent-text font-semibold">Từ điển nhanh QUANGLN</span>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input id="dict-autopause-chk" type="checkbox" checked class="accent-[var(--accent)] rounded" />
+              <span>Tự tạm dừng khi tra</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- SIMULATED FLOATING MINI PIP WINDOW (When PiP active for Canvas demo) -->
+        <div id="mini-pip-box" class="hidden absolute bottom-4 right-4 z-30 w-64 rounded-xl overflow-hidden bg-panel border accent-border shadow-2xl">
+          <div class="px-2.5 py-1.5 bg-[#0B0F15] border-b border-line flex items-center justify-between text-[10px]">
+            <span class="font-bold accent-text flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full accent-bg"></span> Mini PiP • QUANGLN</span>
+            <button id="btn-close-pip" class="text-slate-400 hover:text-white">✕</button>
+          </div>
+          <div class="relative aspect-video bg-black">
+            <canvas id="pip-canvas" class="w-full h-full block"></canvas>
+            <div id="pip-sub-preview" class="absolute bottom-1.5 left-2 right-2 text-center text-[10px] font-semibold text-white sub-outline truncate"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           BOTTOM TRANSPORT CONTROL BAR
+           ===================================================================== -->
+      <div class="flex-none bg-panel border-t border-line px-3 sm:px-4 pt-2 pb-2.5 space-y-2 z-30">
+
+        <!-- FULL-WIDTH SLEEK SEEK BAR WITH AI DIALOGUE HIGHLIGHTS & CHAPTER MARKERS -->
+        <div id="seek-bar-wrap" class="seek-track-wrap relative h-5 flex items-center cursor-pointer group">
+          <!-- Hover Timestamp & Dialogue Tooltip -->
+          <div id="seek-tooltip" class="hidden pointer-events-none absolute -top-11 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-[#090C10]/95 border accent-border shadow-xl text-center whitespace-nowrap z-40">
+            <div id="seek-tooltip-time" class="font-mono text-[11px] font-bold accent-text">00:00</div>
+            <div id="seek-tooltip-text" class="text-[10px] text-slate-300 max-w-[200px] truncate"></div>
+          </div>
+
+          <!-- Base Track -->
+          <div class="w-full h-1.5 group-hover:h-2 transition-all rounded-full bg-[#1C2532] relative overflow-hidden">
+            <!-- Buffered Bar -->
+            <div id="seek-buffered" class="absolute inset-y-0 left-0 bg-slate-600/45 rounded-full" style="width: 78%"></div>
+
+            <!-- Glowing AI Dialogue Segment Highlights Container -->
+            <div id="seek-ai-segments" class="absolute inset-0 pointer-events-none"></div>
+
+            <!-- Played Progress -->
+            <div id="seek-played" class="absolute inset-y-0 left-0 accent-bg rounded-full" style="width: 0%"></div>
+          </div>
+
+          <!-- Chapter Marker Dots -->
+          <div id="seek-chapters" class="absolute inset-0 pointer-events-none"></div>
+
+          <!-- Glowing Thumb -->
+          <div id="seek-thumb" class="seek-thumb absolute top-1/2 w-3.5 h-3.5 rounded-full accent-bg border-2 border-[#090C10] shadow-[0_0_10px_var(--accent)] -translate-x-1/2 -translate-y-1/2 transition-transform" style="left: 0%"></div>
+        </div>
+
+        <!-- CONTROLS ROW (Luôn gọn gàng trên 1 hàng duy nhất, chống đè lấn 100%) -->
+        <div class="flex items-center justify-between gap-1.5 flex-nowrap min-w-0">
+
+          <!-- LEFT CONTROLS: Play, Prev/Next, Volume + 200% Boost, Timecode -->
+          <div class="flex items-center gap-1 shrink-0 select-none">
+            <!-- Play / Pause -->
+            <button id="btn-play-pause" title="Phát / Tạm dừng (Space)" class="w-8 h-8 rounded-lg accent-bg text-[#06100A] flex items-center justify-center hover:brightness-110 transition accent-glow shrink-0">
+              <svg id="icon-play" class="w-4 h-4 ml-0.5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <svg id="icon-pause" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            </button>
+
+            <!-- Prev / -10s / +10s / Next (Tự động co ẩn thông minh trên màn hình hẹp để không bao giờ tràn lấn) -->
+            <button id="btn-prev" title="Video trước" class="hidden sm:flex w-7 h-7 rounded-lg hover:bg-card text-slate-300 hover:text-white items-center justify-center transition shrink-0">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button id="btn-back-10" title="Lùi 10 giây" class="hidden xl:flex h-7 px-1.5 rounded-lg hover:bg-card text-slate-300 hover:text-white items-center font-mono text-[10px] font-bold transition shrink-0">
+              <span>-10s</span>
+            </button>
+            <button id="btn-fwd-10" title="Tới 10 giây" class="hidden xl:flex h-7 px-1.5 rounded-lg hover:bg-card text-slate-300 hover:text-white items-center font-mono text-[10px] font-bold transition shrink-0">
+              <span>+10s</span>
+            </button>
+            <button id="btn-next" title="Video tiếp theo" class="hidden sm:flex w-7 h-7 rounded-lg hover:bg-card text-slate-300 hover:text-white items-center justify-center transition shrink-0">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+
+            <!-- Volume + Slider + 200% Boost -->
+            <div class="flex items-center gap-1 pl-1 border-l border-line ml-0.5 shrink-0">
+              <button id="btn-mute" title="Tắt / Bật âm thanh (M)" class="w-7 h-7 rounded-lg hover:bg-card text-slate-300 hover:text-white flex items-center justify-center transition shrink-0">
+                <svg id="icon-vol-on" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                <svg id="icon-vol-off" class="w-3.5 h-3.5 text-rose-400 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+              </button>
+              <input id="volume-slider" type="range" min="0" max="100" value="85" class="gx-slider hidden 2xl:block !w-14" />
+              <button id="btn-boost-200" title="Khuếch đại âm lượng 200% (Audio Boost)" class="px-1.5 py-0.5 rounded-md bg-card border border-line font-mono text-[10px] font-bold text-slate-400 hover:text-white transition shrink-0">
+                200%
+              </button>
+            </div>
+
+            <!-- Timecode (Gọn gàng sát nút Boost, tuyệt đối không bị đè) -->
+            <div class="flex items-center gap-1 pl-1.5 font-mono text-[11px] text-slate-300 shrink-0 select-none whitespace-nowrap">
+              <span id="time-current" class="text-white font-semibold">00:00</span>
+              <span class="text-slate-600">/</span>
+              <span id="time-total" class="text-slate-400">01:00</span>
+            </div>
+          </div>
+
+          <!-- RIGHT CONTROLS: AI Quick Pills, Speed, Quality, Download, Capture, PiP, Sidebar, Fullscreen -->
+          <div class="flex items-center gap-1 shrink-0 ml-auto">
+            <!-- Prominent AI Vietsub Quick Pill (Co dãn icon CC / Vietsub mượt mà) -->
+            <button id="pill-vietsub" title="Bật/Tắt AI Vietsub (Phím V)" class="h-7 px-2 rounded-lg border text-[11px] font-bold flex items-center gap-1 transition accent-soft accent-border-strong accent-text accent-glow shrink-0">
+              <span class="font-mono text-[9.5px] px-1 rounded bg-black/30">CC</span>
+              <span class="hidden 2xl:inline">Vietsub</span>
+            </button>
+
+            <!-- Prominent AI Lồng tiếng Quick Pill (Co dãn icon Mic / Lồng tiếng mượt mà) -->
+            <button id="pill-dubbing" title="Bật/Tắt AI Lồng tiếng Tiếng Việt (Phím D)" class="h-7 px-2 rounded-lg border text-[11px] font-bold flex items-center gap-1 transition accent-soft accent-border-strong accent-text accent-glow shrink-0">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4m-4 0h8"/></svg>
+              <span class="hidden 2xl:inline">Lồng tiếng</span>
+            </button>
+
+            <!-- Speed Selector -->
+            <select id="speed-select" title="Tốc độ phát" class="gx-select !py-0.5 !pl-1.5 !pr-5 !h-7 font-mono !text-[10.5px] shrink-0">
+              <option value="0.5">0.5x</option>
+              <option value="0.75">0.75x</option>
+              <option value="1" selected>1.0x</option>
+              <option value="1.25">1.25x</option>
+              <option value="1.5">1.5x</option>
+              <option value="2">2.0x</option>
+            </select>
+
+            <!-- Video Quality Selector -->
+            <select id="player-quality-select" title="Chọn chất lượng video (Tự động, 1080p, 720p...)" class="gx-select !py-0.5 !pl-1.5 !pr-5 !h-7 font-mono !text-[10.5px] shrink-0">
+              <option value="auto">Tự động</option>
+              <option value="1080">1080p</option>
+              <option value="720">720p</option>
+              <option value="480">480p</option>
+              <option value="360">360p</option>
+            </select>
+
+            <!-- Integrated Video Downloader (Kiểu Cốc Cốc Savior đồng nhất 100% với bên ngoài) -->
+            <div class="relative flex items-center shrink-0">
+              <button id="btn-player-download" title="Chọn tệp để tải (Tải đa luồng 8x)" class="h-7 px-2 rounded-lg bg-card hover:bg-[#1D2735] border border-line hover:accent-border text-slate-200 hover:accent-text flex items-center gap-1 text-[11px] font-semibold transition shrink-0">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span class="hidden 2xl:inline">Tải về</span>
+              </button>
+
+              <!-- Cốc Cốc-Style "Chọn tệp để tải" Popover Card -->
+              <div id="player-download-menu" class="hidden absolute bottom-9 right-0 w-64 rounded-xl bg-[#23232A] border border-[#3A3A46] shadow-2xl z-50 overflow-hidden text-[#F3F4F6] text-xs select-none">
+                <!-- Header: Green circle icon with download arrow, "Chọn tệp để tải", close X -->
+                <div class="flex items-center justify-between px-3 py-2.5 border-b border-[#343440] bg-[#1E1E24]">
+                  <div class="flex items-center gap-2 font-semibold text-[13px] text-white">
+                    <span class="w-5 h-5 rounded-full bg-[#10B981] text-white flex items-center justify-center text-[11px] font-bold">⬇</span>
+                    <span>Chọn tệp để tải</span>
+                  </div>
+                  <button id="btn-close-player-dl" type="button" class="text-slate-400 hover:text-white text-xs px-1 py-0.5 transition cursor-pointer">✕</button>
+                </div>
+
+                <!-- Body with Scrollable List -->
+                <div id="player-download-options-list" class="py-1 max-h-[360px] overflow-y-auto">
+                  <!-- Section 1: VIDEO -->
+                  <div class="px-3 pt-2 pb-1 text-[10.5px] font-bold text-slate-400 tracking-wider flex items-center gap-1.5">
+                    <span>🎬</span> <span>VIDEO</span>
+                  </div>
+                  <div id="dl-video-items-container">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+
+                  <!-- Section 2: AUDIO -->
+                  <div class="px-3 pt-2 pb-1 text-[10.5px] font-bold text-slate-400 tracking-wider flex items-center gap-1.5 border-t border-white/[0.04] mt-1">
+                    <span>🎵</span> <span>AUDIO</span>
+                  </div>
+                  <div id="dl-audio-items-container">
+                    <!-- Populated dynamically via JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Screenshot Capture -->
+            <button id="btn-screenshot" title="Chụp khung hình video (PNG)" class="w-7 h-7 rounded-lg bg-card hover:bg-[#1D2735] border border-line text-slate-300 hover:accent-text flex items-center justify-center transition shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+            </button>
+
+            <!-- Mini PiP -->
+            <button id="btn-pip" title="Ghim video nổi (Mini PiP)" class="w-7 h-7 rounded-lg bg-card hover:bg-[#1D2735] border border-line text-slate-300 hover:accent-text flex items-center justify-center transition shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><rect x="12" y="10" width="7" height="5" rx="1" fill="currentColor"/></svg>
+            </button>
+
+            <!-- Toggle Right AI Studio Sidebar -->
+            <button id="btn-toggle-studio" title="Ẩn / Hiện bảng AI Studio & Tiện ích" class="h-7 px-2 rounded-lg bg-card hover:bg-[#1D2735] border accent-border text-[11px] font-semibold accent-text flex items-center gap-1 transition shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
+              <span class="hidden xl:inline">Studio</span>
+            </button>
+
+            <!-- Fullscreen -->
+            <button id="btn-fullscreen" title="Toàn màn hình (F)" class="w-7 h-7 rounded-lg bg-card hover:bg-[#1D2735] border border-line text-slate-300 hover:text-white flex items-center justify-center transition shrink-0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         2B. COLLAPSIBLE RIGHT PANEL — "AI STUDIO & TIỆN ÍCH" (3 CLEAN TABS)
+         ========================================================================= -->
+    <aside id="ai-studio-sidebar" class="w-[375px] xl:w-[400px] shrink-0 bg-panel border-l border-line flex flex-col h-full z-30">
+      <!-- Studio Header & 3 Tabs -->
+      <div class="flex-none border-b border-line bg-[#0C1016]">
+        <div class="px-3.5 pt-2.5 pb-2 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full accent-bg shadow-[0_0_8px_var(--accent)]"></span>
+            <h2 class="text-xs font-extrabold uppercase tracking-wider text-white">AI Studio & Tiện ích</h2>
+          </div>
+          <button id="btn-close-studio" title="Thu gọn bảng AI Studio" class="w-6 h-6 rounded-md hover:bg-card text-slate-400 hover:text-white flex items-center justify-center text-xs">✕</button>
+        </div>
+        <div class="grid grid-cols-3 gap-1 px-2.5 pb-2.5">
+          <button data-studio-tab="vietsub" class="studio-tab-btn py-1.5 px-2 rounded-lg text-[11px] font-bold transition border accent-soft accent-border accent-text">
+            AI Vietsub
+          </button>
+          <button data-studio-tab="dubbing" class="studio-tab-btn py-1.5 px-2 rounded-lg text-[11px] font-bold transition border bg-card/60 border-transparent text-slate-400 hover:text-white">
+            AI Lồng tiếng
+          </button>
+          <button data-studio-tab="tools" class="studio-tab-btn py-1.5 px-2 rounded-lg text-[11px] font-bold transition border bg-card/60 border-transparent text-slate-400 hover:text-white">
+            Công cụ & List
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: AI VIETSUB -->
+      <div id="tab-panel-vietsub" class="studio-tab-panel flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div class="flex-none p-2.5 space-y-2 border-b border-line overflow-y-auto max-h-[60%]">
+          <!-- Master Toggle + Scan AI Button -->
+          <div class="p-3 rounded-xl bg-card border border-line space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-white">Phụ đề AI Vietsub</div>
+                <div class="text-[11px] text-slate-400">Nhận diện Whisper ASR + Dịch ngữ cảnh</div>
+              </div>
+              <button id="toggle-vietsub-master" class="gx-toggle on" role="switch" aria-checked="true"></button>
+            </div>
+            <button id="btn-scan-vietsub" class="w-full py-2 px-3 rounded-lg accent-bg text-[#06100A] text-xs font-extrabold tracking-wide hover:brightness-110 transition flex items-center justify-center gap-2 accent-glow">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>Quét & Tạo Vietsub AI</span>
+            </button>
+            <!-- Multi-stage Scan Progress -->
+            <div id="scan-progress-box" class="hidden space-y-1.5 pt-1">
+              <div class="flex justify-between text-[10px] font-medium">
+                <span id="scan-stage-label" class="accent-text">1/4 • Tách âm thanh...</span>
+                <span id="scan-pct-label" class="font-mono text-white">0%</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-outer overflow-hidden">
+                <div id="scan-progress-bar" class="h-full accent-bg transition-all duration-200" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Language Pair & Translation Context Style -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="space-y-1">
+              <label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Ngôn ngữ gốc → Việt</label>
+              <select id="sel-src-lang" class="gx-select w-full">
+                <option value="auto" selected>Tự động (EN → VI)</option>
+                <option value="en">Tiếng Anh → Việt</option>
+                <option value="ja">Tiếng Nhật → Việt</option>
+                <option value="ko">Tiếng Hàn → Việt</option>
+                <option value="zh">Tiếng Trung → Việt</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Phong cách dịch AI</label>
+              <select id="sel-trans-style" class="gx-select w-full">
+                <option value="cinema" selected>Điện ảnh tự nhiên</option>
+                <option value="casual">Đời thường / Hài hước</option>
+                <option value="tech">Kỹ thuật / Học thuật</option>
+                <option value="ancient">Cổ trang / Kiếm hiệp</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Display Mode Segmented Control -->
+          <div class="space-y-1">
+            <label class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Chế độ hiển thị phụ đề</label>
+            <div class="grid grid-cols-3 gap-1 p-1 rounded-lg bg-outer border border-line" id="sub-display-modes">
+              <button data-submode="vi" class="sub-mode-btn py-1 rounded-md text-[11px] font-semibold text-slate-400 hover:text-white transition">Chỉ Tiếng Việt</button>
+              <button data-submode="dual" class="sub-mode-btn py-1 rounded-md text-[11px] font-bold accent-soft accent-text border accent-border transition">Song ngữ</button>
+              <button data-submode="orig" class="sub-mode-btn py-1 rounded-md text-[11px] font-semibold text-slate-400 hover:text-white transition">Chỉ Gốc</button>
+            </div>
+          </div>
+
+          <!-- Appearance & Sync Sliders -->
+          <div class="p-2.5 rounded-xl bg-card border border-line space-y-2">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <div class="flex justify-between text-[10px]"><span class="text-slate-400">Cỡ chữ</span><span id="lbl-sub-size" class="font-mono accent-text">21px</span></div>
+                <input id="sl-sub-size" type="range" min="14" max="34" value="21" class="gx-slider" />
+              </div>
+              <div class="space-y-1">
+                <div class="flex justify-between text-[10px]"><span class="text-slate-400">Độ mờ nền</span><span id="lbl-sub-bg" class="font-mono accent-text">72%</span></div>
+                <input id="sl-sub-bg" type="range" min="0" max="95" value="72" class="gx-slider" />
+              </div>
+              <div class="space-y-1">
+                <div class="flex justify-between text-[10px]"><span class="text-slate-400">Vị trí dọc</span><span id="lbl-sub-pos" class="font-mono accent-text">8%</span></div>
+                <input id="sl-sub-pos" type="range" min="2" max="28" value="8" class="gx-slider" />
+              </div>
+              <div class="space-y-1">
+                <div class="flex justify-between text-[10px]"><span class="text-slate-400">Độ trễ Sync</span><span id="lbl-sub-sync" class="font-mono accent-text">0.0s</span></div>
+                <input id="sl-sub-sync" type="range" min="-2.0" max="2.0" step="0.1" value="0" class="gx-slider" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Import / Export SRT Buttons -->
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-import-srt" class="py-1.5 px-2.5 rounded-lg bg-card hover:bg-[#1E2836] border border-line text-[11px] font-semibold text-slate-200 flex items-center justify-center gap-1.5 transition">
+              <span>📂</span> Nạp file .SRT/.ASS
+            </button>
+            <button id="btn-export-srt" class="py-1.5 px-2.5 rounded-lg bg-card hover:bg-[#1E2836] border accent-border text-[11px] font-semibold accent-text flex items-center justify-center gap-1.5 transition">
+              <span>⬇</span> Xuất file .SRT
+            </button>
+          </div>
+        </div>
+
+        <!-- Synchronized Interactive Transcript -->
+        <div class="flex-1 min-h-0 flex flex-col">
+          <div class="px-3.5 py-2 bg-[#0C1016] border-b border-line flex items-center justify-between text-[11px]">
+            <span class="font-bold text-slate-300">Kịch bản đồng bộ (Transcript)</span>
+            <span class="text-[10px] text-slate-500">Bấm dòng để tua • ✎ để sửa</span>
+          </div>
+          <div id="transcript-list" class="flex-1 overflow-y-auto p-2.5 space-y-2">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: AI LỒNG TIẾNG -->
+      <div id="tab-panel-dubbing" class="studio-tab-panel hidden flex-1 min-h-0 overflow-y-auto p-3.5 space-y-3.5">
+        <!-- Master Dubbing Controls -->
+        <div class="p-3 rounded-xl bg-card border border-line space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-white">AI Lồng tiếng Tiếng Việt</div>
+              <div class="text-[11px] text-slate-400">Đọc thoại đồng bộ thời gian thực</div>
+            </div>
+            <button id="toggle-dub-master" class="gx-toggle on" role="switch" aria-checked="true"></button>
+          </div>
+          <div class="pt-2 border-t border-line/80 flex items-center justify-between">
+            <span class="text-[11px] text-slate-300">Tách giọng gốc (Giữ nhạc nền & SFX)</span>
+            <button id="toggle-vocal-sep" class="gx-toggle on" role="switch" aria-checked="true"></button>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] text-slate-300">Tự động khớp thời lượng (Auto Lip-Sync)</span>
+            <button id="toggle-lipsync" class="gx-toggle on" role="switch" aria-checked="true"></button>
+          </div>
+        </div>
+
+        <!-- Voice Profile Selector Cards -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Hồ sơ giọng đọc AI (Voice Profile)</span>
+            <button id="btn-preview-voice" class="px-2 py-0.5 rounded-md accent-soft border accent-border text-[10px] font-bold accent-text hover:brightness-115 transition">
+              🔊 Nghe thử giọng
+            </button>
+          </div>
+          <div id="voice-profile-grid" class="grid grid-cols-1 gap-1.5">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Emotion & AI Speaking Speed -->
+        <div class="p-3 rounded-xl bg-card border border-line space-y-3">
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cảm xúc giọng đọc</label>
+            <div class="grid grid-cols-3 gap-1.5" id="emotion-group">
+              <button data-emotion="natural" class="emotion-btn py-1.5 rounded-lg text-[11px] font-bold border accent-soft accent-border accent-text transition">Tự nhiên</button>
+              <button data-emotion="dramatic" class="emotion-btn py-1.5 rounded-lg text-[11px] font-semibold border bg-outer border-line text-slate-400 hover:text-white transition">Kịch tính</button>
+              <button data-emotion="soft" class="emotion-btn py-1.5 rounded-lg text-[11px] font-semibold border bg-outer border-line text-slate-400 hover:text-white transition">Nhẹ nhàng</button>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-slate-300">Tốc độ đọc AI</span>
+              <span id="lbl-ai-rate" class="font-mono font-bold accent-text">1.05x</span>
+            </div>
+            <input id="sl-ai-rate" type="range" min="0.8" max="1.4" step="0.05" value="1.05" class="gx-slider" />
+          </div>
+        </div>
+
+        <!-- Interactive 3-Channel Audio Mixer with Live Animated VU Meters -->
+        <div class="p-3 rounded-xl bg-card border border-line space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Bộ trộn âm thanh 3 kênh (Live VU)</span>
+            <span class="font-mono text-[10px] accent-text">Auto-Ducking ON</span>
+          </div>
+
+          <!-- Channel 1: AI Dubbing -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-white font-medium">Giọng AI Lồng tiếng</span>
+              <span id="lbl-mix-ai" class="font-mono accent-text font-bold">115%</span>
+            </div>
+            <input id="sl-mix-ai" type="range" min="0" max="150" value="115" class="gx-slider" />
+            <div class="h-1.5 rounded-full bg-outer overflow-hidden">
+              <div id="vu-ai" class="h-full accent-bg transition-all duration-100" style="width: 18%"></div>
+            </div>
+          </div>
+
+          <!-- Channel 2: Original Dialogue / Auto-Ducking -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-slate-300">Giọng gốc / Auto-Ducking</span>
+              <span id="lbl-mix-orig" class="font-mono text-sky-400 font-bold">20%</span>
+            </div>
+            <input id="sl-mix-orig" type="range" min="0" max="100" value="20" class="gx-slider" />
+            <div class="h-1.5 rounded-full bg-outer overflow-hidden">
+              <div id="vu-orig" class="h-full bg-sky-400 transition-all duration-100" style="width: 12%"></div>
+            </div>
+          </div>
+
+          <!-- Channel 3: BGM / SFX -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-slate-300">Nhạc nền & Hiệu ứng (BGM/SFX)</span>
+              <span id="lbl-mix-bgm" class="font-mono text-amber-400 font-bold">85%</span>
+            </div>
+            <input id="sl-mix-bgm" type="range" min="0" max="100" value="85" class="gx-slider" />
+            <div class="h-1.5 rounded-full bg-outer overflow-hidden">
+              <div id="vu-bgm" class="h-full bg-amber-400 transition-all duration-100" style="width: 45%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Dubbed Video (FFmpeg) -->
+        <button id="btn-open-export" class="w-full py-2.5 px-3 rounded-xl accent-bg text-[#06100A] text-xs font-extrabold tracking-wide hover:brightness-110 transition flex items-center justify-center gap-2 accent-glow">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+          <span>Xuất Video Đã Lồng Tiếng (FFmpeg)</span>
+        </button>
+      </div>
+
+      <!-- TAB 3: CÔNG CỤ & PLAYLIST -->
+      <div id="tab-panel-tools" class="studio-tab-panel hidden flex-1 min-h-0 overflow-y-auto p-3.5 space-y-3.5">
+        <!-- Quick URL Loader (yt-dlp) -->
+        <div class="p-3 rounded-xl bg-card border border-line space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white">Phát / Tải từ Link — yt-dlp</span>
+            <span class="px-1.5 py-0.5 rounded accent-soft border accent-border font-mono text-[9px] font-bold accent-text">8x ENGINE</span>
+          </div>
+          <form id="ytdlp-form" class="flex gap-1.5">
+            <input id="ytdlp-url-input" type="text" placeholder="Dán link YouTube, Bilibili, TikTok..." class="flex-1 bg-outer border border-line focus:border-[var(--accent)] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none select-text" />
+            <button type="submit" class="px-3 py-1.5 rounded-lg accent-bg text-[#06100A] text-xs font-bold hover:brightness-110 transition shrink-0">Quét</button>
+          </form>
+          <div id="ytdlp-result" class="hidden p-2.5 rounded-lg bg-outer border border-line space-y-2">
+            <div class="text-[11px] font-semibold text-white truncate" id="ytdlp-res-title">Chưa có luồng được phân tích</div>
+            <div class="flex items-center gap-1.5">
+              <select id="ytdlp-res-picker" class="gx-select flex-1 !py-1 !text-[11px]">
+                <option value="4K 2160p">4K 2160p • 60fps HDR</option>
+                <option value="1080p">Full HD 1080p • 60fps</option>
+                <option value="720p">HD 720p</option>
+                <option value="MP3 320kbps">Âm thanh MP3 320kbps</option>
+              </select>
+              <button id="btn-ytdlp-play" class="px-2.5 py-1.5 rounded-lg accent-soft border accent-border text-[11px] font-bold accent-text hover:brightness-125">Phát</button>
+              <button id="btn-ytdlp-dl" class="px-2.5 py-1.5 rounded-lg bg-card border border-line text-[11px] font-bold text-white hover:border-white/30">Tải 8x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Enhancement Shaders & Audio EQ -->
+        <div class="p-3 rounded-xl bg-card border border-line space-y-2.5">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tăng cường hình ảnh (libmpv Shaders)</div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-200">AI Upscale 4K (Anime4K / FSR)</span>
+            <button id="toggle-shader-upscale" class="gx-toggle on" role="switch" aria-checked="true"></button>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-200">Tăng cường HDR động</span>
+            <button id="toggle-shader-hdr" class="gx-toggle on" role="switch" aria-checked="true"></button>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-200">Khử nhiễu hạt (AI Denoise)</span>
+            <button id="toggle-shader-denoise" class="gx-toggle" role="switch" aria-checked="false"></button>
+          </div>
+          <div class="pt-2 border-t border-line space-y-1.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Chế độ âm thanh (Audio EQ)</span>
+            <div class="grid grid-cols-2 gap-1.5" id="eq-preset-group">
+              <button data-eq="default" class="eq-btn py-1.5 rounded-lg text-[11px] font-bold border accent-soft accent-border accent-text transition">Mặc định</button>
+              <button data-eq="cinema" class="eq-btn py-1.5 rounded-lg text-[11px] font-semibold border bg-outer border-line text-slate-400 hover:text-white transition">Rạp chiếu phim</button>
+              <button data-eq="voice" class="eq-btn py-1.5 rounded-lg text-[11px] font-semibold border bg-outer border-line text-slate-400 hover:text-white transition">Rõ giọng nói</button>
+              <button data-eq="bass" class="eq-btn py-1.5 rounded-lg text-[11px] font-semibold border bg-outer border-line text-slate-400 hover:text-white transition">Bass Boost</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini GX Resource Monitor -->
+        <div class="p-3 rounded-xl bg-outer border border-line space-y-2">
+          <div class="flex items-center justify-between text-[10px]">
+            <span class="font-bold uppercase tracking-wider text-slate-400">GX Resource Monitor</span>
+            <span class="font-mono accent-text">D3D11VA Active</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2 rounded-lg bg-card border border-line">
+              <div class="text-[9px] text-slate-400 uppercase">FPS</div>
+              <div id="gx-fps" class="font-mono font-bold text-xs text-white mt-0.5">60 fps</div>
+            </div>
+            <div class="p-2 rounded-lg bg-card border border-line">
+              <div class="text-[9px] text-slate-400 uppercase">GPU AI</div>
+              <div id="gx-gpu" class="font-mono font-bold text-xs accent-text mt-0.5">28%</div>
+            </div>
+            <div class="p-2 rounded-lg bg-card border border-line">
+              <div class="text-[9px] text-slate-400 uppercase">VRAM</div>
+              <div id="gx-vram" class="font-mono font-bold text-xs text-sky-400 mt-0.5">1.4 GB</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Playlist Section -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Danh sách phát (Playlist)</span>
+            <button id="btn-add-playlist-file" class="text-[11px] font-semibold accent-text hover:underline">+ Thêm file máy</button>
+          </div>
+          <div id="playlist-container" class="space-y-1.5">
+            <!-- Rendered dynamically via JS -->
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- =========================================================================
+       3. MODALS: NO SUBTITLES HELPER MODAL & FFMPEG EXPORT MODAL
+       ========================================================================= -->
+  <!-- Modal Hướng dẫn Phụ đề & Lồng tiếng khi video không có tệp sub rời trên máy chủ -->
+  <div id="modal-no-subtitles" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-[#0F141C] border accent-border rounded-2xl shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-line flex items-center justify-between bg-[#0B0E14]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg accent-soft flex items-center justify-center text-amber-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white">Chưa có tệp phụ đề rời trên máy chủ</div>
+            <div id="no-sub-movie-title" class="text-[11px] text-slate-400 truncate max-w-[280px]">Video này là bản Hardsub hoặc luồng trực tiếp</div>
+          </div>
+        </div>
+        <button id="btn-close-no-sub-modal" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs text-slate-300 leading-relaxed">
+        <p>
+          Phim trên web (như Motchill, Phimmoi...) thường là bản phim <strong class="text-amber-300">Hardsub</strong> (phụ đề tiếng Việt đã được in cứng vào khung hình) nên máy chủ không có tệp phụ đề văn bản rời (.vtt/.srt).
+        </p>
+        <p class="text-slate-400">
+          Để kích hoạt tính năng <strong class="text-white">AI Vietsub song ngữ</strong> và <strong class="text-white">AI Lồng tiếng đọc đa nhân vật</strong>, bạn có thể chọn một trong các cách sau:
+        </p>
+
+        <div class="space-y-2.5 pt-1">
+          <!-- Cách 1: Nạp file phụ đề có sẵn -->
+          <button id="btn-modal-pick-srt" class="w-full py-2.5 px-3.5 rounded-xl bg-card hover:bg-[#1D2735] border accent-border flex items-center justify-between text-left transition group">
+            <div class="flex items-center gap-3">
+              <span class="text-lg">📁</span>
+              <div>
+                <div class="font-bold text-white group-hover:accent-text transition">Nạp tệp phụ đề (.SRT / .VTT / .ASS)</div>
+                <div class="text-[10px] text-slate-400">Mở file từ máy tính hoặc kéo thả thẳng vào player</div>
+              </div>
+            </div>
+            <span class="text-slate-400 group-hover:translate-x-0.5 transition">➔</span>
+          </button>
+
+          <!-- Cách 2: Tìm kiếm phụ đề phim trên mạng -->
+          <button id="btn-modal-search-sub" class="w-full py-2.5 px-3.5 rounded-xl bg-card hover:bg-[#1D2735] border border-line hover:border-slate-500 flex items-center justify-between text-left transition group">
+            <div class="flex items-center gap-3">
+              <span class="text-lg">🔍</span>
+              <div>
+                <div class="font-bold text-white group-hover:text-sky-300 transition">Tìm phụ đề phim này trên Google</div>
+                <div class="text-[10px] text-slate-400">Tự động tìm kiếm file .SRT vietsub cho tựa phim</div>
+              </div>
+            </div>
+            <span class="text-slate-400 group-hover:translate-x-0.5 transition">➔</span>
+          </button>
+
+          <!-- Cách 3: Nghe thử demo AI Lồng tiếng ngay -->
+          <button id="btn-modal-demo-dub" class="w-full py-2.5 px-3.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 flex items-center justify-between text-left transition group">
+            <div class="flex items-center gap-3">
+              <span class="text-lg">🎭</span>
+              <div>
+                <div class="font-bold text-amber-300">Nghe thử kịch bản AI Lồng tiếng mẫu</div>
+                <div class="text-[10px] text-amber-200/70">Nạp 4 câu thoại để nghe thử các giọng đọc AI Minh Quân, Khánh Linh...</div>
+              </div>
+            </div>
+            <span class="text-amber-400 group-hover:translate-x-0.5 transition">➔</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Dubbed Video Modal -->
+  <div id="modal-export" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-panel border accent-border rounded-2xl shadow-2xl overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-line flex items-center justify-between bg-[#0C1016]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full accent-bg"></span>
+          <h3 class="text-sm font-bold text-white">Xuất Video Đã Lồng Tiếng (FFmpeg)</h3>
+        </div>
+        <button id="btn-close-export" class="w-7 h-7 rounded-lg hover:bg-card text-slate-400 hover:text-white flex items-center justify-center">✕</button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-[11px] text-slate-400">Định dạng & Codec</label>
+            <select id="exp-codec" class="gx-select w-full">
+              <option value="MP4 (H.264 NVENC)">MP4 • H.264 NVENC</option>
+              <option value="MKV (HEVC 10-bit)">MKV • HEVC 10-bit</option>
+              <option value="WebM (AV1)">WebM • AV1</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-[11px] text-slate-400">Độ phân giải</label>
+            <select id="exp-res" class="gx-select w-full">
+              <option value="4K UHD (2160p)">4K UHD (2160p)</option>
+              <option value="Full HD (1080p)" selected>Full HD (1080p)</option>
+              <option value="HD (720p)">HD (720p)</option>
+            </select>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[11px] text-slate-400">Chế độ nhúng phụ đề AI Vietsub</label>
+          <select id="exp-submode" class="gx-select w-full">
+            <option value="hardsub">Hardsub (Gắn cứng Vietsub + Âm thanh lồng tiếng)</option>
+            <option value="softsub">Softsub (Luồng phụ đề rời .SRT + 2 kênh Audio)</option>
+            <option value="dubonly">Chỉ ghép âm thanh AI Lồng tiếng (Không phụ đề)</option>
+          </select>
+        </div>
+
+        <!-- Render Progress Console -->
+        <div id="export-progress-panel" class="hidden p-3 rounded-xl bg-outer border border-line space-y-2">
+          <div class="flex justify-between text-xs">
+            <span id="export-stage-text" class="accent-text font-semibold">Đang trộn âm thanh AI & BGM...</span>
+            <span id="export-pct-text" class="font-mono text-white font-bold">0%</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-card overflow-hidden">
+            <div id="export-bar" class="h-full accent-bg transition-all duration-150" style="width: 0%"></div>
+          </div>
+          <div id="export-log" class="font-mono text-[10px] text-slate-400 truncate">
+            ffmpeg -hwaccel cuda -i input.mkv -i ai_dub_vi.wav -c:v h264_nvenc...
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-1">
+          <button id="btn-cancel-export" class="px-4 py-2 rounded-xl bg-card hover:bg-[#1E2836] border border-line text-xs font-semibold text-slate-300">Đóng</button>
+          <button id="btn-start-export" class="px-5 py-2 rounded-xl accent-bg text-[#06100A] text-xs font-extrabold hover:brightness-110 transition">Bắt đầu xuất video</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-16 left-4 z-[60] flex flex-col gap-2 pointer-events-none max-w-sm"></div>
+
+  <!-- =========================================================================
+       4. COMPLETE PLAYER ENGINE, 60FPS CINEMATIC CANVAS, AI VIETSUB & DUBBING
+       ========================================================================= -->
+  <script>
+    (function () {
+      'use strict';
+
+      function sendHostCmd(action, data = {}) {
+        try {
+          const payload = JSON.stringify({ action, ...data });
+          if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage('QUANGLN_PLAYER_CMD:' + payload);
+          }
+          console.log('QUANGLN_PLAYER_CMD:' + payload);
+        } catch (e) {}
+      }
+
+      /* -----------------------------------------------------------------------
+         A. ACCENT THEMES, VOICE PROFILES, DICTIONARY & DEMO CATALOG
+         ----------------------------------------------------------------------- */
+      const THEMES = {
+        neon:    { name: 'Neon Green',     hex: '#1EEB7A', rgb: '30, 235, 122' },
+        coccoc:  { name: 'Neon Green',     hex: '#1EEB7A', rgb: '30, 235, 122' },
+        crimson: { name: 'GX Crimson',     hex: '#FA1E4E', rgb: '250, 30, 78' },
+        cyan:    { name: 'Cyber Cyan',     hex: '#00E5FF', rgb: '0, 229, 255' },
+        purple:  { name: 'Quantum Purple', hex: '#A855F7', rgb: '168, 85, 247' },
+      };
+
+      const VOICE_PROFILES = [
+        { id: 'auto',  name: 'Đa nhân vật tự động', short: 'Đa nhân vật', desc: 'AI tự nhận diện giọng Nam / Nữ theo từng nhân vật', badge: 'AI AUTO', pitch: 1.0, rateMul: 1.0 },
+        { id: 'quan',  name: 'Minh Quân — Nam Miền Nam', short: 'Minh Quân', desc: 'Ấm áp, tự nhiên, phù hợp phim điện ảnh', badge: 'NAM • NAM', pitch: 0.92, rateMul: 1.0 },
+        { id: 'linh',  name: 'Khánh Linh — Nữ Miền Bắc', short: 'Khánh Linh', desc: 'Truyền cảm, rõ ràng, phù hợp tài liệu & anime', badge: 'NỮ • BẮC', pitch: 1.15, rateMul: 1.02 },
+        { id: 'nam',   name: 'Hoàng Nam — Nam Trầm', short: 'Hoàng Nam', desc: 'Trầm ấm kiểu Review Phim & Trailer kịch tính', badge: 'REVIEW', pitch: 0.78, rateMul: 1.06 },
+        { id: 'vy',    name: 'Thảo Vy — Nữ Trẻ Trung', short: 'Thảo Vy', desc: 'Năng động, tươi sáng, giàu biểu cảm', badge: 'TRẺ TRUNG', pitch: 1.24, rateMul: 1.08 },
+      ];
+
+      const DICTIONARY = {
+        neon: { ipa: '/ˈniː.ɒn/', pos: 'n/adj', vi: 'Đèn neon; ánh sáng rực rỡ mang phong cách tương lai.' },
+        horizon: { ipa: '/həˈraɪ.zən/', pos: 'n', vi: 'Đường chân trời; tầm nhìn, giới hạn nhận thức.' },
+        city: { ipa: '/ˈsɪt.i/', pos: 'n', vi: 'Thành phố, đô thị sầm uất.' },
+        sleeps: { ipa: '/sliːps/', pos: 'v', vi: 'Ngủ, chìm vào giấc ngủ (ngôi thứ ba số ít).' },
+        protocol: { ipa: '/ˈprəʊ.tə.kɒl/', pos: 'n', vi: 'Giao thức truyền thông; quy tắc vận hành hệ thống.' },
+        neural: { ipa: '/ˈnjʊə.rəl/', pos: 'adj', vi: 'Thuộc về thần kinh; mạng nơ-ron trí tuệ nhân tạo.' },
+        signal: { ipa: '/ˈsɪɡ.nəl/', pos: 'n', vi: 'Tín hiệu, dấu hiệu truyền dẫn dữ liệu.' },
+        future: { ipa: '/ˈfjuː.tʃər/', pos: 'n', vi: 'Tương lai, thời đại phía trước.' },
+        browser: { ipa: '/ˈbraʊ.zər/', pos: 'n', vi: 'Trình duyệt web truy cập mạng Internet.' },
+        quantum: { ipa: '/ˈkwɒn.təm/', pos: 'n/adj', vi: 'Lượng tử; bước nhảy công nghệ đột phá.' },
+        engine: { ipa: '/ˈen.dʒɪn/', pos: 'n', vi: 'Động cơ, nhân xử lý cốt lõi của phần mềm.' },
+        shield: { ipa: '/ʃiːld/', pos: 'n', vi: 'Lá chắn, khiên bảo vệ hệ thống.' },
+        shadow: { ipa: '/ˈʃæd.əʊ/', pos: 'n', vi: 'Bóng tối, cái bóng ẩn hiện.' },
+        gateway: { ipa: '/ˈɡeɪt.weɪ/', pos: 'n', vi: 'Cổng kết nối, cánh cửa dẫn vào không gian mới.' },
+        memory: { ipa: '/ˈmem.ər.i/', pos: 'n', vi: 'Ký ức; bộ nhớ lưu trữ của máy tính.' },
+        voice: { ipa: '/vɔɪs/', pos: 'n', vi: 'Giọng nói, tiếng nói.' },
+        dream: { ipa: '/driːm/', pos: 'n/v', vi: 'Giấc mơ, khát vọng; mơ mộng.' },
+        faster: { ipa: '/ˈfɑː.stər/', pos: 'adj/adv', vi: 'Nhanh hơn, tốc độ vượt trội hơn.' },
+        awake: { ipa: '/əˈweɪk/', pos: 'adj/v', vi: 'Thức tỉnh, tỉnh táo.' },
+        secret: { ipa: '/ˈsiː.krət/', pos: 'n/adj', vi: 'Bí mật, điều ẩn giấu chưa được tiết lộ.' },
+        light: { ipa: '/laɪt/', pos: 'n', vi: 'Ánh sáng, tia sáng.' },
+        power: { ipa: '/ˈpaʊ.ər/', pos: 'n', vi: 'Sức mạnh, năng lượng, quyền năng.' },
+        system: { ipa: '/ˈsɪs.təm/', pos: 'n', vi: 'Hệ thống, mạng lưới tổ chức.' },
+        world: { ipa: '/wɜːld/', pos: 'n', vi: 'Thế giới, toàn cầu.' },
+      };
+
+      /* -----------------------------------------------------------------------
+         B. APPLICATION STATE (Không ghim cứng dữ liệu demo giả lập)
+         ----------------------------------------------------------------------- */
+      const state = {
+        theme: 'neon',
+        playlist: [],
+        activeIndex: -1,
+        playing: false,
+        currentTime: 0,
+        duration: 0,
+        playbackRate: 1.0,
+        volume: 85,
+        muted: false,
+        boost200: false,
+        pinnedTop: false,
+        pipActive: false,
+        studioOpen: true,
+        studioTab: 'vietsub',
+
+        // AI Vietsub settings
+        vietsubEnabled: true,
+        subDisplayMode: 'dual', // 'vi' | 'dual' | 'orig'
+        transStyle: 'cinema',   // 'cinema' | 'casual' | 'tech' | 'ancient'
+        subFontSize: 21,
+        subBgOpacity: 72,
+        subVerticalOffset: 8,
+        subSyncOffset: 0.0,
+        activeSubIndex: -1,
+        editingSubIndex: -1,
+
+        // AI Dubbing settings
+        dubEnabled: true,
+        vocalSep: true,
+        autoLipSync: true,
+        voiceProfile: 'auto',
+        emotion: 'natural',
+        aiRate: 1.05,
+        mixAi: 115,
+        mixOrig: 20,
+        mixBgm: 85,
+        lastSpokenSubKey: null,
+        isAiSpeaking: false,
+        hasViVoice: false,
+        viVoices: [],
+
+        // Shaders & EQ
+        shaderUpscale: true,
+        shaderHdr: true,
+        shaderDenoise: false,
+        audioEq: 'default',
+
+        // Local video Web Audio Boost graph & Native libmpv fallback sync
+        mpvMode: false,
+        audioCtx: null,
+        mediaSource: null,
+        gainNode: null,
+        eqFilter: null,
+      };
+
+      /* -----------------------------------------------------------------------
+         C. DOM REFERENCES
+         ----------------------------------------------------------------------- */
+      const $ = id => document.getElementById(id);
+      const demoCanvas = $('demo-canvas');
+      const demoCtx = demoCanvas.getContext('2d');
+      const pipCanvas = $('pip-canvas');
+      const pipCtx = pipCanvas.getContext('2d');
+      const localVideo = $('local-video');
+      const localAudio = $('local-audio');
+      const aiDubAudio = $('ai-dub-audio');
+      let ttsSeq = 0;
+
+      /* -----------------------------------------------------------------------
+         D. UTILITY HELPERS (TIME FORMAT, TOAST, ESCAPE, SUB TEXT)
+         ----------------------------------------------------------------------- */
+      function formatTime(sec) {
+        if (!Number.isFinite(sec) || sec < 0) sec = 0;
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+
+      function formatSrtTime(sec) {
+        if (sec < 0) sec = 0;
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = Math.floor(sec % 60);
+        const ms = Math.floor((sec - Math.floor(sec)) * 1000);
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function getCurrentItem() {
+        return state.activeIndex >= 0 ? (state.playlist[state.activeIndex] || null) : null;
+      }
+
+      function getViText(sub) {
+        if (!sub) return '';
+        if (sub.customVi !== null && sub.customVi !== undefined) return sub.customVi;
+        if (sub.styles && sub.styles[state.transStyle]) return sub.styles[state.transStyle];
+        return sub.vi || sub.en || '';
+      }
+
+      function showToast(msg, imgDataUrl = null) {
+        const container = $('toast-container');
+        const el = document.createElement('div');
+        el.className = 'toast-anim pointer-events-auto p-3 rounded-xl bg-panel/95 backdrop-blur-md border accent-border shadow-2xl flex items-center gap-3 text-xs text-slate-100';
+        el.innerHTML = imgDataUrl
+          ? `
+            <img src="${imgDataUrl}" alt="Chụp khung hình" class="w-16 h-10 object-cover rounded-lg border border-line shrink-0" />
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-white">${escapeHtml(msg)}</div>
+              <a href="${imgDataUrl}" download="QUANGLN_Capture_${Date.now()}.png" class="text-[11px] accent-text hover:underline font-medium">⬇ Lưu ảnh PNG</a>
+            </div>
+          `
+          : `
+            <span class="w-2 h-2 rounded-full accent-bg shadow-[0_0_8px_var(--accent)] shrink-0"></span>
+            <span class="font-medium">${escapeHtml(msg)}</span>
+          `;
+        container.appendChild(el);
+        while (container.children.length > 3) container.firstChild.remove();
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(8px)';
+          el.style.transition = 'all 0.22s ease';
+          setTimeout(() => el.remove(), 240);
+        }, imgDataUrl ? 4800 : 2800);
+      }
+
+      /* -----------------------------------------------------------------------
+         E. THEME SWITCHER
+         ----------------------------------------------------------------------- */
+      function applyTheme(key, announce = false) {
+        const normalized = key === 'coccoc' ? 'neon' : key;
+        const t = THEMES[normalized] || THEMES.neon;
+        state.theme = normalized;
+        document.documentElement.style.setProperty('--accent', t.hex);
+        document.documentElement.style.setProperty('--accent-rgb', t.rgb);
+        document.documentElement.style.setProperty('--accent-soft', `rgba(${t.rgb}, 0.13)`);
+        document.documentElement.style.setProperty('--accent-glow', `rgba(${t.rgb}, 0.38)`);
+
+        document.querySelectorAll('.theme-dot').forEach(dot => {
+          const active = dot.dataset.theme === normalized;
+          dot.classList.toggle('ring-2', active);
+          dot.classList.toggle('ring-white', active);
+        });
+
+        if (announce) {
+          showToast(`Đã đổi chủ đề màu: ${t.name}`);
+          sendHostCmd('theme-change', { theme: normalized });
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         F. WEB SPEECH API — VIETNAMESE AI DUBBING ENGINE
+         ----------------------------------------------------------------------- */
+      function initSpeechVoices() {
+        if (!('speechSynthesis' in window)) {
+          state.hasViVoice = false;
+          updateDubbingHUD();
+          return;
+        }
+        const load = () => {
+          const voices = window.speechSynthesis.getVoices() || [];
+          state.viVoices = voices.filter(v => (v.lang || '').toLowerCase().includes('vi'));
+          state.hasViVoice = state.viVoices.length > 0;
+          updateDubbingHUD();
+        };
+        load();
+        window.speechSynthesis.onvoiceschanged = load;
+      }
+
+      function cancelSpeech() {
+        ttsSeq++;
+        clearTimeout(state._browserTtsTimer);
+        if ('speechSynthesis' in window) {
+          try { window.speechSynthesis.cancel(); } catch (e) {}
+        }
+        try {
+          aiDubAudio.pause();
+          aiDubAudio.removeAttribute('src');
+        } catch (e) {}
+        sendHostCmd('stop-tts');
+        state.isAiSpeaking = false;
+        state.lastSpokenSubKey = null;
+        updateDubbingHUD();
+        applyLocalVideoVolume();
+      }
+
+      function speakVietnameseLine(text, speakerGender = 'male', forcePreview = false) {
+        if (!text) return;
+        if (!forcePreview && (!state.dubEnabled || !state.playing || state.muted)) return;
+
+        const profile = VOICE_PROFILES.find(v => v.id === state.voiceProfile) || VOICE_PROFILES[0];
+        let rate = state.aiRate * profile.rateMul * (forcePreview ? 1 : state.playbackRate);
+        rate = Math.min(2.0, Math.max(0.65, rate));
+        const volFactor = Math.min(1, Math.max(0.1, (state.volume / 100) * (state.mixAi / 100)));
+        const seq = ++ttsSeq;
+
+        try {
+          aiDubAudio.pause();
+        } catch (e) {}
+
+        // Ưu tiên cao nhất: Gửi lệnh sang C# Host để tổng hợp bằng Microsoft Edge Neural TTS cao cấp
+        // Hỗ trợ đầy đủ 4 hồ sơ giọng: Minh Quân (Nam Nam), Khánh Linh (Nữ Bắc), Hoàng Nam (Nam Trầm), Thảo Vy (Nữ Trẻ Trung)
+        sendHostCmd('speak-vi', {
+          text,
+          voice: state.voiceProfile,
+          gender: speakerGender,
+          emotion: state.emotion,
+          rate,
+          volume: volFactor,
+          seq
+        });
+
+        // Dự phòng khi mở file HTML độc lập ngoài ứng dụng WPF (standalone browser demo)
+        if (state.hasViVoice && 'speechSynthesis' in window) {
+          clearTimeout(state._browserTtsTimer);
+          state._browserTtsTimer = setTimeout(() => {
+            if (seq === ttsSeq && !state.isAiSpeaking) {
+              try {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'vi-VN';
+                if (state.viVoices.length > 0) {
+                  const voiceIdx = (profile.id === 'auto' && speakerGender === 'female' && state.viVoices.length > 1) ? 1 : 0;
+                  utter.voice = state.viVoices[voiceIdx % state.viVoices.length];
+                }
+                utter.rate = rate;
+                utter.pitch = profile.pitch;
+                utter.volume = volFactor;
+                utter.onstart = () => {
+                  state.isAiSpeaking = true;
+                  updateDubbingHUD();
+                  applyLocalVideoVolume();
+                };
+                utter.onend = utter.onerror = () => {
+                  state.isAiSpeaking = false;
+                  updateDubbingHUD();
+                  applyLocalVideoVolume();
+                };
+                window.speechSynthesis.speak(utter);
+              } catch (e) {}
+            }
+          }, 1200);
+        }
+      }
+
+      function updateDubbingHUD() {
+        const subPill = $('hud-vietsub-pill');
+        const dubPill = $('hud-dub-pill');
+        const fallbackPill = $('hud-tts-fallback');
+        const eq = $('hud-eq');
+
+        subPill.classList.toggle('hidden', !state.vietsubEnabled);
+        const modeMap = { vi: 'Chỉ Tiếng Việt', dual: 'Song ngữ', orig: 'Chỉ Gốc' };
+        $('hud-vietsub-status').textContent = modeMap[state.subDisplayMode] || 'Song ngữ';
+
+        dubPill.classList.toggle('hidden', !state.dubEnabled);
+        const profile = VOICE_PROFILES.find(v => v.id === state.voiceProfile) || VOICE_PROFILES[0];
+        $('hud-dub-status').textContent = `${profile.short} (${state.isAiSpeaking ? 'Đang đọc' : 'Sẵn sàng'})`;
+        eq.classList.toggle('eq-paused', !state.isAiSpeaking || !state.playing);
+
+        // Luôn ẩn cảnh báo mô phỏng vì đã có giọng đọc AI Tiếng Việt thật từ C# Host
+        fallbackPill.classList.add('hidden');
+        fallbackPill.classList.remove('flex');
+      }
+
+      /* -----------------------------------------------------------------------
+         G. LOCAL VIDEO AUDIO GRAPH (200% BOOST, AUTO-DUCKING & EQ)
+         ----------------------------------------------------------------------- */
+      function ensureLocalAudioGraph() {
+        if (state.audioCtx) return;
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          state.audioCtx = new AudioCtx();
+          state.mediaSource = state.audioCtx.createMediaElementSource(localVideo);
+          state.eqFilter = state.audioCtx.createBiquadFilter();
+          state.eqFilter.type = 'peaking';
+          state.eqFilter.frequency.value = 1000;
+          state.eqFilter.gain.value = 0;
+
+          state.gainNode = state.audioCtx.createGain();
+          state.mediaSource.connect(state.eqFilter);
+          state.eqFilter.connect(state.gainNode);
+          state.gainNode.connect(state.audioCtx.destination);
+          applyAudioEqPreset();
+          applyLocalVideoVolume();
+        } catch (e) {
+          // Fallback to standard HTML5 video volume
+        }
+      }
+
+      function applyLocalVideoVolume() {
+        const baseVol = state.muted ? 0 : (state.volume / 100);
+        let duckMul = 1.0;
+        if (state.dubEnabled) {
+          duckMul = state.isAiSpeaking ? (state.mixOrig / 100) : Math.max(state.mixOrig / 100, state.mixBgm / 100);
+        }
+        const boostMul = state.boost200 ? 2.0 : 1.0;
+
+        if (state.mpvMode) {
+          const mpvVol = Math.round(Math.min(200, state.volume * duckMul * boostMul));
+          sendHostCmd('mpv-volume', { volume: mpvVol, muted: state.muted });
+          return;
+        }
+
+        const curUrl = localVideo.currentSrc || localVideo.src || '';
+        const canUseGain = Boolean(state.gainNode) && curUrl.startsWith('blob:');
+        const effectiveVol = Math.min(1, baseVol * duckMul);
+
+        if (canUseGain) {
+          localVideo.volume = 1;
+          state.gainNode.gain.value = baseVol * duckMul * boostMul;
+        } else {
+          if (state.gainNode) {
+            state.gainNode.gain.value = 1;
+          }
+          localVideo.volume = effectiveVol;
+        }
+        localVideo.muted = state.muted;
+        localAudio.volume = effectiveVol;
+        localAudio.muted = state.muted;
+      }
+
+      function applyAudioEqPreset() {
+        if (!state.eqFilter) return;
+        if (state.audioEq === 'default') {
+          state.eqFilter.type = 'peaking';
+          state.eqFilter.frequency.value = 1000;
+          state.eqFilter.gain.value = 0;
+        } else if (state.audioEq === 'cinema') {
+          state.eqFilter.type = 'lowshelf';
+          state.eqFilter.frequency.value = 180;
+          state.eqFilter.gain.value = 5.5;
+        } else if (state.audioEq === 'voice') {
+          state.eqFilter.type = 'peaking';
+          state.eqFilter.frequency.value = 2400;
+          state.eqFilter.gain.value = 6.5;
+        } else if (state.audioEq === 'bass') {
+          state.eqFilter.type = 'lowshelf';
+          state.eqFilter.frequency.value = 120;
+          state.eqFilter.gain.value = 9.0;
+        }
+      }
+
+      function applyVideoShaders() {
+        localVideo.classList.remove('shader-upscale', 'shader-hdr', 'shader-both');
+        if (state.shaderUpscale && state.shaderHdr) localVideo.classList.add('shader-both');
+        else if (state.shaderUpscale) localVideo.classList.add('shader-upscale');
+        else if (state.shaderHdr) localVideo.classList.add('shader-hdr');
+
+        const parts = [];
+        const item = getCurrentItem();
+        parts.push(item?.res || 'HD');
+        if (state.shaderUpscale) parts.push('AI Upscale');
+        if (state.shaderHdr) parts.push('HDR');
+        if (state.shaderDenoise) parts.push('Denoise');
+        const qbt1 = $('quality-badge-text');
+        if (qbt1) qbt1.textContent = parts.join(' • ');
+        const tb = $('tech-badge');
+        if (tb) tb.innerHTML = `<span class="w-1.5 h-1.5 rounded-full accent-bg"></span> QUANGLN Engine • ${parts.join(' • ')}`;
+      }
+
+      /* -----------------------------------------------------------------------
+         H. MEDIA LOADING & PLAYBACK CONTROLS
+         ----------------------------------------------------------------------- */
+      function resetDefaultQualitySelect() {
+        const sel = $('player-quality-select');
+        if (!sel) return;
+        sel.innerHTML = `
+          <option value="auto">Tự động</option>
+          <option value="1080">1080p (FHD)</option>
+          <option value="720">720p (HD)</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+        `;
+        sel.value = 'auto';
+      }
+
+      function updateQualitySelectFromHls(hls) {
+        const sel = $('player-quality-select');
+        if (!sel || !hls || !Array.isArray(hls.levels) || hls.levels.length === 0) return;
+        sel.innerHTML = '';
+
+        const autoOpt = document.createElement('option');
+        autoOpt.value = '-1';
+        autoOpt.textContent = 'Tự động';
+        sel.appendChild(autoOpt);
+
+        const indexedLevels = hls.levels.map((lvl, idx) => ({ ...lvl, index: idx }));
+        indexedLevels.sort((a, b) => (b.height || 0) - (a.height || 0));
+
+        indexedLevels.forEach(lvl => {
+          const opt = document.createElement('option');
+          opt.value = String(lvl.index);
+          const height = lvl.height || 0;
+          let label = height > 0 ? `${height}p` : `Luồng #${lvl.index + 1}`;
+          if (height >= 1080) label += ' (FHD)';
+          else if (height >= 720) label += ' (HD)';
+          opt.textContent = label;
+          sel.appendChild(opt);
+        });
+
+        sel.value = String(hls.currentLevel);
+      }
+
+      function reportStageRect() {
+        const stage = $('video-stage');
+        if (!stage) return;
+        const r = stage.getBoundingClientRect();
+        sendHostCmd('stage-rect', {
+          left: Math.round(r.left),
+          top: Math.round(r.top),
+          width: Math.max(0, Math.round(r.width)),
+          height: Math.max(0, Math.round(r.height))
+        });
+      }
+
+      function loadPlaylistItem(index, autoPlay = true) {
+        if (index < 0 || index >= state.playlist.length) return;
+        cancelSpeech();
+        if (state.mpvMode) {
+          state.mpvMode = false;
+          sendHostCmd('mpv-hide');
+        }
+        window.__quanglnSetLoading(false);
+        state.activeIndex = index;
+        state.activeSubIndex = -1;
+        state.lastSpokenSubKey = null;
+        state.editingSubIndex = -1;
+        closeDictPopup();
+
+        const item = getCurrentItem();
+        if (!item) return;
+        $('empty-stage-overlay')?.classList.add('hidden');
+        $('titlebar-filename').textContent = item.filename || item.title;
+
+        if (item.type === 'local') {
+          demoCanvas.classList.add('hidden');
+          localVideo.classList.remove('hidden');
+
+          if (state._hlsInstance) {
+            try { state._hlsInstance.destroy(); } catch (e) {}
+            state._hlsInstance = null;
+          }
+
+          const objUrlStr = String(item.objectUrl || '');
+          const isHlsStream = typeof Hls !== 'undefined' && Hls.isSupported && Hls.isSupported() &&
+                              (objUrlStr.includes('.m3u8') || objUrlStr.includes('/hls') || objUrlStr.includes('m3u8'));
+
+          if (isHlsStream) {
+            const hls = new Hls({
+              enableWorker: true,
+              lowLatencyMode: false,
+              maxBufferLength: 60,
+              maxMaxBufferLength: 120,
+              maxBufferSize: 120 * 1000 * 1000,
+              backBufferLength: 30,
+              startFragPrefetch: true,
+              fragLoadingTimeOut: 20000,
+              manifestLoadingTimeOut: 15000,
+              levelLoadingTimeOut: 15000,
+              fpsDroppedMonitoringPeriod: 5000,
+              fpsDroppedMonitoringThreshold: 0.2
+            });
+            state._hlsInstance = hls;
+            hls.loadSource(item.objectUrl);
+            hls.attachMedia(localVideo);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              window.__quanglnSetLoading(false);
+              updateQualitySelectFromHls(hls);
+              state.duration = localVideo.duration || item.duration || 60;
+              item.duration = state.duration;
+              $('time-total').textContent = formatTime(state.duration);
+              renderSeekHighlights();
+              renderPlaylist();
+              if (autoPlay) {
+                localVideo.play().catch(() => {});
+                state.playing = true;
+                updatePlayPauseUI();
+              }
+            });
+            hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+              const sel = $('player-quality-select');
+              if (sel && sel.value === '-1') {
+                const curLevel = hls.levels[data.level];
+                if (curLevel && curLevel.height) {
+                  const qbt2 = $('quality-badge-text');
+                  if (qbt2) qbt2.textContent = `${curLevel.height}p • HLS`;
+                }
+              }
+            });
+            hls.on(Hls.Events.ERROR, (event, data) => {
+              if (data && data.fatal) {
+                try { hls.destroy(); } catch (e) {}
+                state._hlsInstance = null;
+                showToast('Đang chuyển luồng sang bộ giải mã phần cứng libmpv...');
+                sendHostCmd('video-decode-fallback', { url: item.objectUrl || item.sourcePageUrl, title: item.title });
+              }
+            });
+          } else {
+            resetDefaultQualitySelect();
+            localVideo.src = item.objectUrl;
+          }
+          localVideo.playbackRate = state.playbackRate;
+
+          if (item.audioUrl) {
+            localAudio.src = item.audioUrl;
+            localAudio.playbackRate = state.playbackRate;
+            localAudio.currentTime = 0;
+          } else {
+            localAudio.pause();
+            localAudio.removeAttribute('src');
+            localAudio.load();
+          }
+
+          if (String(item.objectUrl || '').startsWith('blob:')) {
+            ensureLocalAudioGraph();
+            if (state.audioCtx && state.audioCtx.state === 'suspended') {
+              state.audioCtx.resume().catch(() => {});
+            }
+          }
+          localVideo.onloadedmetadata = () => {
+            window.__quanglnSetLoading(false);
+            state.duration = localVideo.duration || item.duration || 60;
+            item.duration = state.duration;
+            $('time-total').textContent = formatTime(state.duration);
+            renderSeekHighlights();
+            renderPlaylist();
+            if (autoPlay) {
+              localVideo.play().catch(() => {});
+              if (item.audioUrl) {
+                localAudio.currentTime = localVideo.currentTime || 0;
+                localAudio.play().catch(() => {});
+              }
+              state.playing = true;
+              updatePlayPauseUI();
+            }
+          };
+          localVideo.onwaiting = () => {
+            if (item.audioUrl) localAudio.pause();
+          };
+          localVideo.onplaying = () => {
+            if (item.audioUrl && state.playing) {
+              if (Math.abs((localAudio.currentTime || 0) - localVideo.currentTime) > 0.2) {
+                localAudio.currentTime = localVideo.currentTime;
+              }
+              localAudio.play().catch(() => {});
+            }
+          };
+          localVideo.onerror = () => {
+            window.__quanglnSetLoading(false);
+            localAudio.pause();
+            reportStageRect();
+            showToast('Đang chuyển luồng sang bộ giải mã phần cứng libmpv...');
+            sendHostCmd('video-decode-fallback', { url: item.objectUrl || item.sourcePageUrl, title: item.title });
+          };
+          applyLocalVideoVolume();
+        } else {
+          if (state._hlsInstance) {
+            try { state._hlsInstance.destroy(); } catch (e) {}
+            state._hlsInstance = null;
+          }
+          localVideo.pause();
+          localVideo.removeAttribute('src');
+          localVideo.load();
+          localAudio.pause();
+          localAudio.removeAttribute('src');
+          localAudio.load();
+          localVideo.classList.add('hidden');
+          demoCanvas.classList.remove('hidden');
+          state.currentTime = 0;
+          state.duration = item.duration;
+          $('time-total').textContent = formatTime(state.duration);
+          state.playing = autoPlay;
+          updatePlayPauseUI();
+        }
+
+        renderSeekHighlights();
+        renderTranscript();
+        renderPlaylist();
+        applyVideoShaders();
+        updateSubtitleForTime(0);
+      }
+
+      function togglePlayPause() {
+        const item = getCurrentItem();
+        if (!item && !state.mpvMode) return;
+        state.playing = !state.playing;
+        if (state.mpvMode) {
+          sendHostCmd('mpv-set-paused', { paused: !state.playing });
+        } else if (item && item.type === 'local') {
+          if (state.playing) {
+            if (state.audioCtx && state.audioCtx.state === 'suspended') state.audioCtx.resume().catch(() => {});
+            localVideo.play().catch(() => {});
+            if (item.audioUrl) {
+              localAudio.currentTime = localVideo.currentTime || 0;
+              localAudio.play().catch(() => {});
+            }
+          } else {
+            localVideo.pause();
+            if (item.audioUrl) localAudio.pause();
+          }
+        }
+        if (!state.playing) cancelSpeech();
+        updatePlayPauseUI();
+      }
+
+      function seekTo(seconds) {
+        const item = getCurrentItem();
+        if (!item && !state.mpvMode) return;
+        const clamped = Math.max(0, Math.min(state.duration, seconds));
+        state.currentTime = clamped;
+        if (state.mpvMode) {
+          sendHostCmd('mpv-seek', { seconds: clamped });
+        } else if (item && item.type === 'local') {
+          localVideo.currentTime = clamped;
+          if (item.audioUrl) {
+            localAudio.currentTime = clamped;
+          }
+        }
+        state.lastSpokenSubKey = null;
+        cancelSpeech();
+        updateSeekBarUI();
+        updateSubtitleForTime(clamped);
+      }
+
+      function updatePlayPauseUI() {
+        $('icon-play').classList.toggle('hidden', state.playing);
+        $('icon-pause').classList.toggle('hidden', !state.playing);
+        const overlay = $('stage-play-overlay');
+        overlay.style.opacity = state.playing ? '0' : '1';
+        updateDubbingHUD();
+      }
+
+      function updateSeekBarUI() {
+        const pct = state.duration > 0 ? (state.currentTime / state.duration) * 100 : 0;
+        $('seek-played').style.width = `${pct}%`;
+        $('seek-thumb').style.left = `${pct}%`;
+        $('time-current').textContent = formatTime(state.currentTime);
+        $('time-total').textContent = formatTime(state.duration);
+
+        const item = getCurrentItem();
+        if (item && item.type === 'local' && localVideo.buffered.length > 0 && state.duration > 0) {
+          const bufPct = (localVideo.buffered.end(localVideo.buffered.length - 1) / state.duration) * 100;
+          $('seek-buffered').style.width = `${Math.min(100, bufPct)}%`;
+        } else {
+          $('seek-buffered').style.width = `0%`;
+        }
+      }
+
+      function renderSeekHighlights() {
+        const item = getCurrentItem();
+        const segWrap = $('seek-ai-segments');
+        const chapWrap = $('seek-chapters');
+        segWrap.innerHTML = '';
+        chapWrap.innerHTML = '';
+        if (!item) return;
+
+        const dur = state.duration || 60;
+        (item.subtitles || []).forEach(sub => {
+          const left = Math.max(0, (sub.start / dur) * 100);
+          const width = Math.min(100 - left, ((sub.end - sub.start) / dur) * 100);
+          const seg = document.createElement('div');
+          seg.className = 'absolute inset-y-0 rounded-full opacity-45';
+          seg.style.left = `${left}%`;
+          seg.style.width = `${width}%`;
+          seg.style.background = 'var(--accent)';
+          segWrap.appendChild(seg);
+        });
+
+        (item.chapters || []).forEach(ch => {
+          if (ch <= 0 || ch >= dur) return;
+          const dot = document.createElement('div');
+          dot.className = 'absolute top-1/2 -translate-y-1/2 w-1 h-2.5 rounded-full bg-white/75';
+          dot.style.left = `${(ch / dur) * 100}%`;
+          chapWrap.appendChild(dot);
+        });
+      }
+
+      /* -----------------------------------------------------------------------
+         I. REAL-TIME SUBTITLE OVERLAY + CỐC CỐC INTERACTIVE DICTIONARY
+         ----------------------------------------------------------------------- */
+      function updateSubtitleForTime(time) {
+        const item = getCurrentItem();
+        const subs = item?.subtitles || [];
+        const adjTime = time - state.subSyncOffset;
+
+        let foundIdx = -1;
+        for (let i = 0; i < subs.length; i++) {
+          if (adjTime >= subs[i].start && adjTime <= subs[i].end) {
+            foundIdx = i;
+            break;
+          }
+        }
+
+        const layer = $('subtitle-layer');
+        const box = $('subtitle-box');
+        const viEl = $('sub-vi-line');
+        const enEl = $('sub-en-line');
+        const spkEl = $('sub-speaker-tag');
+
+        layer.style.bottom = `${state.subVerticalOffset}%`;
+        box.style.background = `rgba(9, 12, 16, ${state.subBgOpacity / 100})`;
+        viEl.style.fontSize = `${state.subFontSize}px`;
+        enEl.style.fontSize = `${Math.max(12, Math.round(state.subFontSize * 0.72))}px`;
+
+        if (foundIdx === -1) {
+          box.classList.add('hidden');
+          $('pip-sub-preview').textContent = '';
+          if (state.activeSubIndex !== -1) {
+            state.activeSubIndex = -1;
+            highlightActiveTranscriptRow(-1);
+          }
+          return;
+        }
+
+        const sub = subs[foundIdx];
+        const viText = getViText(sub);
+        const enText = sub.en || '';
+
+        // 1. Lớp phụ đề hiển thị trên màn hình chỉ phụ thuộc vào AI Vietsub
+        if (state.vietsubEnabled) {
+          box.classList.remove('hidden');
+          if (sub.speaker) {
+            spkEl.textContent = sub.speaker;
+            spkEl.classList.remove('hidden');
+          } else {
+            spkEl.classList.add('hidden');
+          }
+
+          if (state.subDisplayMode === 'vi') {
+            viEl.classList.remove('hidden');
+            enEl.classList.add('hidden');
+            viEl.textContent = viText;
+          } else if (state.subDisplayMode === 'orig') {
+            viEl.classList.add('hidden');
+            enEl.classList.remove('hidden');
+            renderClickableEnglishLine(enEl, enText);
+          } else {
+            viEl.classList.remove('hidden');
+            enEl.classList.remove('hidden');
+            viEl.textContent = viText;
+            renderClickableEnglishLine(enEl, enText);
+          }
+
+          $('pip-sub-preview').textContent = viText;
+        } else {
+          box.classList.add('hidden');
+          $('pip-sub-preview').textContent = '';
+        }
+
+        // 2. Đồng bộ dòng kịch bản đang phát (Transcript)
+        if (state.activeSubIndex !== foundIdx) {
+          state.activeSubIndex = foundIdx;
+          highlightActiveTranscriptRow(foundIdx);
+        }
+
+        // 3. AI Lồng tiếng chạy độc lập hoàn toàn, không phụ thuộc bật/tắt phụ đề hiển thị
+        const subKey = `${item.id}-${foundIdx}-${state.transStyle}`;
+        if (state.dubEnabled && state.playing && viText && state.lastSpokenSubKey !== subKey) {
+          state.lastSpokenSubKey = subKey;
+          speakVietnameseLine(viText, sub.gender || 'male');
+        }
+      }
+
+      function renderClickableEnglishLine(container, text) {
+        if (container.dataset.raw === text) return;
+        container.dataset.raw = text;
+        container.innerHTML = '';
+        const tokens = text.split(/(\s+)/);
+        tokens.forEach(tok => {
+          if (/^\s+$/.test(tok)) {
+            container.appendChild(document.createTextNode(tok));
+          } else {
+            const span = document.createElement('span');
+            span.className = 'en-word';
+            span.textContent = tok;
+            span.addEventListener('click', (e) => {
+              e.stopPropagation();
+              openDictPopup(tok, span);
+            });
+            container.appendChild(span);
+          }
+        });
+      }
+
+      function openDictPopup(rawToken, anchorEl) {
+        const clean = rawToken.replace(/[^a-zA-Z]/g, '').toLowerCase();
+        if (!clean) return;
+
+        const popup = $('dict-popup');
+        const entry = DICTIONARY[clean] || {
+          ipa: `/${clean}/`,
+          pos: 'từ vựng',
+          vi: `Từ tiếng Anh "${clean}" — Bấm biểu tượng loa để nghe phát âm chuẩn hoặc bật chế độ Song ngữ để đối chiếu câu.`
+        };
+
+        $('dict-word').textContent = clean;
+        $('dict-pos').textContent = entry.pos;
+        $('dict-ipa').textContent = entry.ipa;
+        $('dict-meaning').textContent = entry.vi;
+
+        const stageRect = $('video-stage').getBoundingClientRect();
+        const wordRect = anchorEl.getBoundingClientRect();
+        const left = Math.min(stageRect.width - 300, Math.max(12, wordRect.left - stageRect.left - 80));
+        const top = Math.max(54, wordRect.top - stageRect.top - 150);
+        popup.style.left = `${left}px`;
+        popup.style.top = `${top}px`;
+        popup.classList.remove('hidden');
+
+        if ($('dict-autopause-chk').checked && state.playing) {
+          togglePlayPause();
+        }
+      }
+
+      function closeDictPopup() {
+        $('dict-popup').classList.add('hidden');
+      }
+
+      /* -----------------------------------------------------------------------
+         J. TRANSCRIPT RENDERING, INLINE EDITING & SRT IMPORT/EXPORT
+         ----------------------------------------------------------------------- */
+      function renderTranscript() {
+        const list = $('transcript-list');
+        const item = getCurrentItem();
+        const subs = item?.subtitles || [];
+        list.innerHTML = '';
+
+        if (!item) {
+          list.innerHTML = `<div class="p-4 text-center text-xs text-slate-500">Kịch bản phụ đề của video đang phát sẽ tự động hiển thị tại đây.</div>`;
+          return;
+        }
+
+        if (subs.length === 0) {
+          list.innerHTML = `<div class="p-4 text-center text-xs text-slate-500 leading-relaxed">Video này chưa có phụ đề. Bấm <strong class="text-slate-300">Quét &amp; Tạo Vietsub AI</strong> hoặc <strong class="text-slate-300">Nạp file .SRT/.ASS</strong>.</div>`;
+          return;
+        }
+
+        subs.forEach((sub, idx) => {
+          const isActive = idx === state.activeSubIndex;
+          const isEditing = idx === state.editingSubIndex;
+          const viText = getViText(sub);
+
+          const card = document.createElement('div');
+          card.dataset.subIdx = idx;
+          card.className = `p-2.5 rounded-xl border transition cursor-pointer ${
+            isActive ? 'accent-soft accent-border' : 'bg-card/80 border-line hover:border-slate-600'
+          }`;
+
+          if (isEditing) {
+            card.innerHTML = `
+              <div class="flex items-center justify-between text-[10px] mb-1.5">
+                <span class="font-mono accent-text font-bold">${formatTime(sub.start)} → ${formatTime(sub.end)}</span>
+                <span class="text-slate-400">${escapeHtml(sub.speaker || 'Thoại')}</span>
+              </div>
+              <textarea id="edit-sub-ta" rows="2" class="w-full bg-outer border accent-border rounded-lg p-2 text-xs text-white outline-none select-text resize-none">${escapeHtml(viText)}</textarea>
+              <div class="flex justify-end gap-1.5 mt-1.5">
+                <button data-cancel-edit class="px-2.5 py-1 rounded-md bg-outer border border-line text-[10px] text-slate-300">Hủy</button>
+                <button data-save-edit class="px-2.5 py-1 rounded-md accent-bg text-[#06100A] text-[10px] font-bold">Lưu</button>
+              </div>
+            `;
+            card.addEventListener('click', e => e.stopPropagation());
+            card.querySelector('[data-cancel-edit]').addEventListener('click', () => {
+              state.editingSubIndex = -1;
+              renderTranscript();
+            });
+            card.querySelector('[data-save-edit]').addEventListener('click', () => {
+              const val = card.querySelector('#edit-sub-ta').value.trim();
+              if (val) sub.customVi = val;
+              state.editingSubIndex = -1;
+              renderTranscript();
+              updateSubtitleForTime(state.currentTime);
+              showToast('Đã cập nhật bản dịch phụ đề ngay lập tức');
+            });
+          } else {
+            card.innerHTML = `
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono text-[10px] font-bold ${isActive ? 'accent-text' : 'text-slate-400'}">${formatTime(sub.start)}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-outer border border-line text-[9px] font-semibold text-slate-300">${escapeHtml(sub.speaker || 'Thoại')}</span>
+                </div>
+                <button data-edit-idx="${idx}" title="Sửa bản dịch Tiếng Việt" class="edit-sub-btn px-1.5 py-0.5 rounded hover:bg-outer text-[10px] text-slate-400 hover:accent-text transition">✎ Sửa</button>
+              </div>
+              <div class="text-xs font-medium text-white leading-snug">${escapeHtml(viText)}</div>
+              ${sub.en ? `<div class="text-[11px] text-slate-400 mt-0.5 leading-snug">${escapeHtml(sub.en)}</div>` : ''}
+            `;
+            card.addEventListener('click', (e) => {
+              if (e.target.closest('.edit-sub-btn')) return;
+              seekTo(sub.start + 0.05);
+            });
+            card.querySelector('.edit-sub-btn').addEventListener('click', (e) => {
+              e.stopPropagation();
+              state.editingSubIndex = idx;
+              renderTranscript();
+            });
+          }
+
+          list.appendChild(card);
+        });
+      }
+
+      function highlightActiveTranscriptRow(activeIdx) {
+        const list = $('transcript-list');
+        if (!list || state.editingSubIndex !== -1) return;
+        list.querySelectorAll('[data-sub-idx]').forEach(el => {
+          const isAct = Number(el.dataset.subIdx) === activeIdx;
+          el.className = `p-2.5 rounded-xl border transition cursor-pointer ${
+            isAct ? 'accent-soft accent-border' : 'bg-card/80 border-line hover:border-slate-600'
+          }`;
+          const ts = el.querySelector('.font-mono');
+          if (ts) ts.className = `font-mono text-[10px] font-bold ${isAct ? 'accent-text' : 'text-slate-400'}`;
+          if (isAct && state.studioTab === 'vietsub') {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        });
+      }
+
+      function parseSrtContent(content) {
+        const normalized = content.replace(/\r\n/g, '\n').trim();
+        const blocks = normalized.split(/\n\n+/);
+        const parsed = [];
+        const timeToSec = t => {
+          const m = t.trim().match(/(\d+):(\d+):(\d+)[,.](\d+)/);
+          if (!m) return 0;
+          return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]) + Number(m[4]) / 1000;
+        };
+
+        blocks.forEach((b, i) => {
+          const lines = b.split('\n').map(l => l.trim()).filter(Boolean);
+          const timeLineIdx = lines.findIndex(l => l.includes('-->'));
+          if (timeLineIdx !== -1) {
+            const [sStr, eStr] = lines[timeLineIdx].split('-->');
+            const text = lines.slice(timeLineIdx + 1).join(' ').replace(/<[^>]+>/g, '');
+            parsed.push({
+              start: timeToSec(sStr),
+              end: timeToSec(eStr),
+              speaker: `Lời thoại ${i + 1}`,
+              gender: i % 2 === 0 ? 'male' : 'female',
+              en: text,
+              vi: text,
+              customVi: text
+            });
+          }
+        });
+
+        if (parsed.length === 0 && normalized.includes('Dialogue:')) {
+          normalized.split('\n').forEach((line, idx) => {
+            if (!line.startsWith('Dialogue:')) return;
+            const parts = line.split(',');
+            if (parts.length >= 10) {
+              const parseAssT = s => {
+                const p = s.trim().split(':');
+                return Number(p[0]) * 3600 + Number(p[1]) * 60 + Number(p[2]);
+              };
+              const text = parts.slice(9).join(',').replace(/\{[^}]+\}/g, '').replace(/\\N/g, ' ');
+              parsed.push({
+                start: parseAssT(parts[1]),
+                end: parseAssT(parts[2]),
+                speaker: parts[4] || `Lời thoại ${idx + 1}`,
+                gender: idx % 2 === 0 ? 'male' : 'female',
+                en: text,
+                vi: text,
+                customVi: text
+              });
+            }
+          });
+        }
+        return parsed;
+      }
+
+      function exportCurrentSrt() {
+        const item = getCurrentItem();
+        const subs = item?.subtitles || [];
+        if (subs.length === 0) {
+          showToast('Không có phụ đề để xuất file .SRT');
+          return;
+        }
+        const srtText = subs.map((s, idx) => {
+          const line = state.subDisplayMode === 'dual' && s.en
+            ? `${getViText(s)}\n${s.en}`
+            : (state.subDisplayMode === 'orig' && s.en ? s.en : getViText(s));
+          return `${idx + 1}\n${formatSrtTime(s.start)} --> ${formatSrtTime(s.end)}\n${line}`;
+        }).join('\n\n');
+
+        const safeName = (item.filename || 'quanbrowser_vietsub').replace(/\.[^.]+$/, '');
+        sendHostCmd('save-srt', { filename: `${safeName}_vietsub.srt`, content: srtText });
+
+        try {
+          const blob = new Blob([srtText], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${safeName}_vietsub.srt`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (e) {}
+        showToast(`Đã xuất file ${safeName}_vietsub.srt thành công!`);
+      }
+
+      /* -----------------------------------------------------------------------
+         K. VOICE PROFILES & PLAYLIST RENDERERS
+         ----------------------------------------------------------------------- */
+      function renderVoiceProfiles() {
+        const grid = $('voice-profile-grid');
+        grid.innerHTML = '';
+        VOICE_PROFILES.forEach(vp => {
+          const active = vp.id === state.voiceProfile;
+          const btn = document.createElement('button');
+          btn.className = `p-2.5 rounded-xl border text-left transition flex items-center justify-between gap-2 ${
+            active ? 'accent-soft accent-border' : 'bg-card border-line hover:border-slate-600'
+          }`;
+          btn.innerHTML = `
+            <div class="min-w-0">
+              <div class="text-xs font-bold ${active ? 'accent-text' : 'text-white'} truncate">${vp.name}</div>
+              <div class="text-[10px] text-slate-400 truncate mt-0.5">${vp.desc}</div>
+            </div>
+            <span class="px-1.5 py-0.5 rounded bg-outer border border-line font-mono text-[9px] font-bold ${active ? 'accent-text' : 'text-slate-400'} shrink-0">${vp.badge}</span>
+          `;
+          btn.addEventListener('click', () => {
+            state.voiceProfile = vp.id;
+            renderVoiceProfiles();
+            updateDubbingHUD();
+            showToast(`Đã chọn giọng AI: ${vp.name}`);
+          });
+          grid.appendChild(btn);
+        });
+      }
+
+      function renderPlaylist() {
+        const wrap = $('playlist-container');
+        wrap.innerHTML = '';
+        if (state.playlist.length === 0) {
+          wrap.innerHTML = `<div class="p-3 rounded-xl bg-card/50 border border-line text-center text-[11px] text-slate-500">Chưa có video nào trong danh sách phát.</div>`;
+          return;
+        }
+        state.playlist.forEach((item, idx) => {
+          const active = idx === state.activeIndex;
+          const card = document.createElement('button');
+          card.className = `w-full p-2.5 rounded-xl border text-left transition flex items-center justify-between gap-2.5 ${
+            active ? 'accent-soft accent-border' : 'bg-card border-line hover:border-slate-600'
+          }`;
+          card.innerHTML = `
+            <div class="w-8 h-8 rounded-lg bg-outer border border-line flex items-center justify-center shrink-0 font-mono text-[10px] font-bold ${active ? 'accent-text' : 'text-slate-400'}">
+              ${active ? '▶' : String(idx + 1).padStart(2, '0')}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-xs font-semibold ${active ? 'text-white' : 'text-slate-200'} truncate">${escapeHtml(item.title)}</div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                <span class="font-mono">${formatTime(item.duration)}</span>
+                <span>•</span>
+                <span>${item.type === 'local' ? 'Luồng Video' : item.res}</span>
+              </div>
+            </div>
+          `;
+          card.addEventListener('click', () => loadPlaylistItem(idx, true));
+          wrap.appendChild(card);
+        });
+      }
+
+      /* -----------------------------------------------------------------------
+         L. 60FPS CINEMATIC DEMO CANVAS ENGINE + LIVE VU METERS + GX MONITOR
+         ----------------------------------------------------------------------- */
+      function resizeCanvas() {
+        const stage = $('video-stage');
+        const rect = stage.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        demoCanvas.width = Math.max(320, Math.floor(rect.width * dpr));
+        demoCanvas.height = Math.max(200, Math.floor(rect.height * dpr));
+        pipCanvas.width = 320;
+        pipCanvas.height = 180;
+        reportStageRect();
+      }
+
+      function drawCinematicFrame(ctx, w, h, t, sceneStyle, accentHex, accentRgb) {
+        const hdrBoost = state.shaderHdr ? 1.25 : 1.0;
+
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+        if (sceneStyle === 'cyberpunk') {
+          skyGrad.addColorStop(0, '#04070D');
+          skyGrad.addColorStop(0.55, '#0B1324');
+          skyGrad.addColorStop(1, '#070B12');
+        } else if (sceneStyle === 'documentary') {
+          skyGrad.addColorStop(0, '#060A12');
+          skyGrad.addColorStop(0.5, '#0D1B2A');
+          skyGrad.addColorStop(1, '#05080F');
+        } else {
+          skyGrad.addColorStop(0, '#0C081E');
+          skyGrad.addColorStop(0.55, '#1B1038');
+          skyGrad.addColorStop(1, '#0A0D1C');
+        }
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.save();
+        for (let i = 0; i < 3; i++) {
+          const bx = w * (0.2 + i * 0.3) + Math.sin(t * 0.45 + i * 2) * (w * 0.08);
+          const beamGrad = ctx.createRadialGradient(bx, h * 0.28, 10, bx, h * 0.35, w * 0.38);
+          const alpha = (0.14 + 0.06 * Math.sin(t + i)) * hdrBoost;
+          beamGrad.addColorStop(0, `rgba(${accentRgb}, ${Math.min(0.45, alpha)})`);
+          beamGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = beamGrad;
+          ctx.fillRect(0, 0, w, h);
+        }
+        ctx.restore();
+
+        const horizonY = h * 0.62;
+
+        if (sceneStyle === 'cyberpunk') {
+          const sunR = Math.min(w, h) * 0.14;
+          const sunGrad = ctx.createLinearGradient(w * 0.5, horizonY - sunR * 1.4, w * 0.5, horizonY);
+          sunGrad.addColorStop(0, accentHex);
+          sunGrad.addColorStop(1, `rgba(${accentRgb}, 0.06)`);
+          ctx.fillStyle = sunGrad;
+          ctx.beginPath();
+          ctx.arc(w * 0.5, horizonY - sunR * 0.25, sunR, 0, Math.PI * 2);
+          ctx.fill();
+
+          const count = 26;
+          for (let i = 0; i < count; i++) {
+            const scroll = (t * 26) % (w / count);
+            const bw = (w / count) * 0.88;
+            const bx = (i * (w / count) - scroll + w) % (w + bw) - bw;
+            const seed = Math.sin(i * 12.9898) * 43758.5453;
+            const frac = seed - Math.floor(seed);
+            const bh = h * (0.12 + frac * 0.28);
+            ctx.fillStyle = '#090E18';
+            ctx.fillRect(bx, horizonY - bh, bw, bh);
+            ctx.strokeStyle = `rgba(${accentRgb}, ${0.22 + frac * 0.28})`;
+            ctx.lineWidth = state.shaderUpscale ? 1.5 : 1;
+            ctx.strokeRect(bx + 0.5, horizonY - bh + 0.5, bw - 1, bh - 1);
+
+            ctx.fillStyle = i % 3 === 0 ? accentHex : 'rgba(148, 163, 184, 0.35)';
+            for (let wy = horizonY - bh + 12; wy < horizonY - 12; wy += 16) {
+              if (((i + Math.floor(wy)) % 4) !== 0) {
+                ctx.fillRect(bx + 6, wy, bw - 12, 3);
+              }
+            }
+          }
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(0, horizonY, w, h - horizonY);
+          ctx.clip();
+          ctx.strokeStyle = `rgba(${accentRgb}, ${0.28 * hdrBoost})`;
+          ctx.lineWidth = 1.2;
+          for (let i = -10; i <= 10; i++) {
+            ctx.beginPath();
+            ctx.moveTo(w * 0.5 + i * (w * 0.04), horizonY);
+            ctx.lineTo(w * 0.5 + i * (w * 0.22), h);
+            ctx.stroke();
+          }
+          const gridSpeed = (t * 60) % 36;
+          for (let gy = 0; gy < 12; gy++) {
+            const p = ((gy * 36 + gridSpeed) / 432);
+            const y = horizonY + Math.pow(p, 1.8) * (h - horizonY);
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (sceneStyle === 'documentary') {
+          const cx = w * 0.5;
+          const cy = h * 0.46;
+          const r = Math.min(w, h) * 0.24;
+
+          ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
+          ctx.lineWidth = 1.4;
+          for (let ring = 0; ring < 3; ring++) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(t * (0.25 + ring * 0.12) * (ring % 2 === 0 ? 1 : -1));
+            ctx.beginPath();
+            ctx.ellipse(0, 0, r * (1 + ring * 0.22), r * (0.38 + ring * 0.12), 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          const pts = [];
+          for (let i = 0; i < 18; i++) {
+            const ang = (i / 18) * Math.PI * 2 + t * 0.3;
+            const dist = r * (0.45 + 0.55 * Math.sin(i * 2.1 + t * 0.6));
+            pts.push({ x: cx + Math.cos(ang) * dist * 1.4, y: cy + Math.sin(ang) * dist * 0.8 });
+          }
+          ctx.strokeStyle = `rgba(${accentRgb}, 0.18)`;
+          pts.forEach((p, idx) => {
+            const next = pts[(idx + 3) % pts.length];
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(next.x, next.y);
+            ctx.stroke();
+            ctx.fillStyle = idx % 2 === 0 ? accentHex : '#38BDF8';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        } else {
+          for (let i = 0; i < 45; i++) {
+            const sx = ((i * 97 + t * 18) % w);
+            const sy = ((i * 53) % (h * 0.58));
+            const twinkle = 0.35 + 0.65 * Math.abs(Math.sin(t * 2 + i));
+            ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
+            ctx.fillRect(sx, sy, 2, 2);
+          }
+
+          const tw = w * 0.06;
+          ctx.fillStyle = '#0D1024';
+          ctx.beginPath();
+          ctx.moveTo(w * 0.5, h * 0.14);
+          ctx.lineTo(w * 0.5 + tw, horizonY + 40);
+          ctx.lineTo(w * 0.5 - tw, horizonY + 40);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = accentHex;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.strokeStyle = `rgba(${accentRgb}, 0.35)`;
+          ctx.lineWidth = 1.3;
+          for (let i = 0; i < 36; i++) {
+            const rx = ((i * 73 + t * 240) % (w + 100)) - 50;
+            const ry = ((i * 89 + t * 520) % (h + 100)) - 50;
+            ctx.beginPath();
+            ctx.moveTo(rx, ry);
+            ctx.lineTo(rx - 10, ry + 26);
+            ctx.stroke();
+          }
+        }
+
+        ctx.save();
+        ctx.strokeStyle = `rgba(${accentRgb}, 0.35)`;
+        ctx.lineWidth = 1.5;
+        const pad = 22;
+        const arm = 18;
+        ctx.beginPath();
+        ctx.moveTo(w - pad - arm, pad); ctx.lineTo(w - pad, pad); ctx.lineTo(w - pad, pad + arm);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pad, h - pad - arm); ctx.lineTo(pad, h - pad); ctx.lineTo(pad + arm, h - pad);
+        ctx.stroke();
+
+        if (state.activeSubIndex !== -1) {
+          const barCount = 28;
+          const totalW = Math.min(w * 0.32, 240);
+          const startX = (w - totalW) / 2;
+          const baseY = h * 0.54;
+          for (let i = 0; i < barCount; i++) {
+            const env = Math.sin((i / (barCount - 1)) * Math.PI);
+            const amp = (state.playing ? (0.3 + 0.7 * Math.abs(Math.sin(t * 9 + i * 0.7))) : 0.15) * env * 32;
+            ctx.fillStyle = `rgba(${accentRgb}, ${0.45 + 0.45 * env})`;
+            ctx.fillRect(startX + i * (totalW / barCount), baseY - amp / 2, (totalW / barCount) * 0.55, Math.max(3, amp));
+          }
+        }
+        ctx.restore();
+
+        if (!state.shaderDenoise) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.018)';
+          for (let i = 0; i < 45; i++) {
+            ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+          }
+        }
+
+        const vig = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.75);
+        vig.addColorStop(0, 'rgba(0,0,0,0)');
+        vig.addColorStop(1, 'rgba(5, 8, 12, 0.58)');
+        ctx.fillStyle = vig;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      let lastFrameTs = 0;
+      let lastSeekBarUiTime = -1;
+      let lastSubCheckTime = -1;
+      let lastVuUpdateTs = 0;
+
+      function animationLoop(ts) {
+        if (!lastFrameTs) lastFrameTs = ts;
+        const dt = Math.min(0.1, (ts - lastFrameTs) / 1000);
+        lastFrameTs = ts;
+
+        const item = getCurrentItem();
+
+        if (item && item.type === 'local' && !state.mpvMode) {
+          if (!localVideo.paused) {
+            state.currentTime = localVideo.currentTime;
+            state.duration = localVideo.duration || state.duration;
+            if (item.audioUrl && !localAudio.paused) {
+              const drift = Math.abs(localAudio.currentTime - localVideo.currentTime);
+              if (drift > 0.22) {
+                localAudio.currentTime = localVideo.currentTime;
+              }
+            }
+            // Tối ưu hóa UI: giới hạn tần suất vẽ lại DOM để GPU và decoder đạt 60fps mượt mà, không giật lag
+            if (Math.abs(state.currentTime - lastSeekBarUiTime) >= 0.08) {
+              lastSeekBarUiTime = state.currentTime;
+              updateSeekBarUI();
+            }
+            if (Math.abs(state.currentTime - lastSubCheckTime) >= 0.04) {
+              lastSubCheckTime = state.currentTime;
+              updateSubtitleForTime(state.currentTime);
+            }
+          }
+        }
+
+        if (state.studioTab === 'dubbing' && (ts - lastVuUpdateTs >= 35)) {
+          lastVuUpdateTs = ts;
+          const speakingBoost = (state.playing && (state.isAiSpeaking || state.activeSubIndex !== -1)) ? 1 : 0.12;
+          const aiVu = state.dubEnabled && state.playing
+            ? Math.min(100, (state.mixAi / 150) * (35 + Math.random() * 60) * speakingBoost)
+            : 4;
+          const origVu = state.playing
+            ? Math.min(100, (state.mixOrig / 100) * (state.vocalSep ? 38 : 75) * (0.4 + Math.random() * 0.6))
+            : 3;
+          const bgmVu = state.playing
+            ? Math.min(100, (state.mixBgm / 100) * (45 + Math.random() * 40))
+            : 5;
+
+          $('vu-ai').style.width = `${aiVu}%`;
+          $('vu-orig').style.width = `${origVu}%`;
+          $('vu-bgm').style.width = `${bgmVu}%`;
+        }
+
+        requestAnimationFrame(animationLoop);
+      }
+
+      function tickGxResourceMonitor() {
+        const fps = state.playing ? (59 + Math.round(Math.random())) : 60;
+        const aiLoad = (state.vietsubEnabled ? 12 : 0) + (state.dubEnabled ? 11 : 0) + (state.shaderUpscale ? 8 : 0) + Math.floor(Math.random() * 6);
+        const vram = (0.8 + (state.shaderUpscale ? 0.45 : 0) + (state.dubEnabled ? 0.25 : 0) + Math.random() * 0.1).toFixed(1);
+        $('gx-fps').textContent = `${fps} fps`;
+        $('gx-gpu').textContent = `${aiLoad}%`;
+        $('gx-vram').textContent = `${vram} GB`;
+      }
+
+      /* -----------------------------------------------------------------------
+         M. LOCAL FILE LOADING (OPEN & DRAG-AND-DROP) + SCREENSHOT CAPTURE
+         ----------------------------------------------------------------------- */
+      function handleIncomingFiles(files) {
+        if (!files || files.length === 0) return;
+        Array.from(files).forEach(file => {
+          const lower = file.name.toLowerCase();
+          if (lower.endsWith('.srt') || lower.endsWith('.ass') || lower.endsWith('.vtt')) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const subs = parseSrtContent(String(reader.result || ''));
+              const cur = getCurrentItem();
+              if (subs.length > 0 && cur) {
+                cur.subtitles = subs;
+                renderSeekHighlights();
+                renderTranscript();
+                updateSubtitleForTime(state.currentTime);
+                showToast(`Đã nạp thành công ${subs.length} dòng phụ đề từ "${file.name}"`);
+              } else if (!cur) {
+                showToast('Hãy mở tệp video trước khi nạp phụ đề');
+              } else {
+                showToast('Không thể đọc định dạng phụ đề trong tệp này');
+              }
+            };
+            reader.readAsText(file, 'utf-8');
+          } else if (file.type.startsWith('video/') || /\.(mp4|webm|mkv|mov)$/i.test(lower)) {
+            const objectUrl = URL.createObjectURL(file);
+            state.playlist.push({
+              id: 'local-' + Date.now() + Math.random(),
+              type: 'local',
+              title: file.name.replace(/\.[^.]+$/, ''),
+              filename: file.name,
+              objectUrl,
+              audioUrl: null,
+              sourcePageUrl: null,
+              duration: 0,
+              res: 'Local HD',
+              chapters: [],
+              subtitles: []
+            });
+            loadPlaylistItem(state.playlist.length - 1, true);
+            showToast(`Đang phát tệp cục bộ: ${file.name}`);
+          }
+        });
+      }
+
+      function captureScreenshot() {
+        const outCanvas = document.createElement('canvas');
+        const item = getCurrentItem();
+        if (!item || localVideo.videoWidth <= 0) {
+          showToast('Chưa có khung hình video đang phát để chụp');
+          return;
+        }
+        outCanvas.width = localVideo.videoWidth;
+        outCanvas.height = localVideo.videoHeight;
+        outCanvas.getContext('2d').drawImage(localVideo, 0, 0, outCanvas.width, outCanvas.height);
+        if (state.vietsubEnabled && state.activeSubIndex !== -1) {
+          const c = outCanvas.getContext('2d');
+          const txt = getViText(item.subtitles[state.activeSubIndex]);
+          c.font = `600 ${Math.round(outCanvas.height * 0.04)}px Inter, sans-serif`;
+          c.textAlign = 'center';
+          c.fillStyle = 'rgba(0,0,0,0.65)';
+          const tw = c.measureText(txt).width + 32;
+          c.fillRect((outCanvas.width - tw) / 2, outCanvas.height * 0.85, tw, outCanvas.height * 0.075);
+          c.fillStyle = '#FFFFFF';
+          c.fillText(txt, outCanvas.width / 2, outCanvas.height * 0.9);
+        }
+        try {
+          const dataUrl = outCanvas.toDataURL('image/png');
+          showToast(`Đã chụp khung hình tại ${formatTime(state.currentTime)}`, dataUrl);
+        } catch (e) {
+          showToast(`Đã chụp khung hình tại ${formatTime(state.currentTime)}`);
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         N. BIND ALL UI EVENTS & KEYBOARD SHORTCUTS
+         ----------------------------------------------------------------------- */
+      function syncQuickPills() {
+        const pv = $('pill-vietsub');
+        const pd = $('pill-dubbing');
+        pv.className = `h-7 px-2 rounded-lg border text-[11px] font-bold flex items-center gap-1 transition shrink-0 ${
+          state.vietsubEnabled
+            ? 'accent-soft accent-border-strong accent-text accent-glow'
+            : 'bg-card border-line text-slate-400 hover:text-white'
+        }`;
+        pd.className = `h-7 px-2 rounded-lg border text-[11px] font-bold flex items-center gap-1 transition shrink-0 ${
+          state.dubEnabled
+            ? 'accent-soft accent-border-strong accent-text accent-glow'
+            : 'bg-card border-line text-slate-400 hover:text-white'
+        }`;
+
+        $('toggle-vietsub-master').classList.toggle('on', state.vietsubEnabled);
+        $('toggle-dub-master').classList.toggle('on', state.dubEnabled);
+        updateDubbingHUD();
+        updateSubtitleForTime(state.currentTime);
+      }
+
+      function setStudioTab(tabKey) {
+        state.studioTab = tabKey;
+        document.querySelectorAll('.studio-tab-btn').forEach(b => {
+          const active = b.dataset.studioTab === tabKey;
+          b.className = `studio-tab-btn py-1.5 px-2 rounded-lg text-[11px] font-bold transition border ${
+            active
+              ? 'accent-soft accent-border accent-text'
+              : 'bg-card/60 border-transparent text-slate-400 hover:text-white'
+          }`;
+        });
+        document.querySelectorAll('.studio-tab-panel').forEach(p => {
+          p.classList.toggle('hidden', p.id !== `tab-panel-${tabKey}`);
+        });
+      }
+
+      /* -----------------------------------------------------------------------
+         DOWNLOAD MENU (CỐC CỐC SAVIOR POPUP KIỂU MỚI)
+         ----------------------------------------------------------------------- */
+      let _lastPlayerDownloadFormats = null;
+
+      function renderPlayerDownloadMenu(items) {
+        if (items) {
+          _lastPlayerDownloadFormats = items;
+        } else if (_lastPlayerDownloadFormats) {
+          items = _lastPlayerDownloadFormats;
+        }
+
+        const videoContainer = $('dl-video-items-container');
+        const audioContainer = $('dl-audio-items-container');
+        if (!videoContainer || !audioContainer) return;
+
+        videoContainer.innerHTML = '';
+        audioContainer.innerHTML = '';
+
+        const defaultVideos = [
+          { value: '1080', name: 'Full HD', res: '1080p', ext: '.mp4' },
+          { value: '720', name: 'HD', res: '720p', ext: '.mp4' },
+          { value: '480', name: 'Tiêu chuẩn', res: '480p', ext: '.mp4' },
+          { value: '360', name: 'Trung bình', res: '360p', ext: '.mp4' }
+        ];
+
+        const defaultAudios = [
+          { value: 'audio', name: 'Trung bình', res: '128kbps', ext: '.m4a' }
+        ];
+
+        let videos = [];
+        let audios = [];
+
+        if (Array.isArray(items) && items.length > 0) {
+          for (let i = 0; i < items.length; i++) {
+            const it = items[i];
+            if (it.isAudio || it.value === 'audio') {
+              audios.push(it);
+            } else {
+              videos.push(it);
+            }
+          }
+        }
+
+        if (videos.length === 0) videos = defaultVideos;
+        if (audios.length === 0) audios = defaultAudios;
+
+        function createOptionRow(it) {
+          const row = document.createElement('div');
+          row.className = 'dl-opt-row grid grid-cols-[1fr_auto_auto] items-center gap-2.5 px-3 py-2 cursor-pointer border-b border-white/[0.04] hover:bg-[#32323D] transition';
+          row.dataset.dlQuality = String(it.value || 'best');
+
+          const colName = document.createElement('span');
+          colName.className = 'font-semibold text-[#F9FAFB]';
+          colName.textContent = it.name || 'Video';
+
+          const colRes = document.createElement('span');
+          colRes.className = 'text-slate-300 text-[11.5px] font-mono text-right';
+          colRes.textContent = it.res || '';
+
+          const colExt = document.createElement('span');
+          colExt.className = 'text-slate-400 text-[11px] font-mono min-w-[50px] text-right';
+          colExt.textContent = it.ext || '';
+
+          row.appendChild(colName);
+          row.appendChild(colRes);
+          row.appendChild(colExt);
+
+          row.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            $('player-download-menu')?.classList.add('hidden');
+
+            const q = row.dataset.dlQuality || 'best';
+            const curItem = getCurrentItem();
+            if (!curItem) {
+              showToast('Không có video đang phát để tải!');
+              return;
+            }
+            const downloadUrl = curItem.sourcePageUrl || curItem.objectUrl || '';
+            const title = curItem.title || curItem.filename || 'QUANGLN_Video';
+
+            if (q === 'audio') {
+              showToast('⬇ Bắt đầu tải bản chỉ âm thanh (M4A) với tăng tốc đa luồng 8x...');
+            } else {
+              const qUpper = /^\d+$/.test(q) ? (q + 'P') : q.toUpperCase();
+              showToast(`⬇ Bắt đầu tải video (${qUpper}) với tăng tốc đa luồng 8x...`);
+            }
+
+            sendHostCmd('player-download-media', {
+              url: downloadUrl,
+              title: title,
+              quality: q
+            });
+          });
+
+          return row;
+        }
+
+        for (let i = 0; i < videos.length; i++) {
+          videoContainer.appendChild(createOptionRow(videos[i]));
+        }
+        for (let i = 0; i < audios.length; i++) {
+          audioContainer.appendChild(createOptionRow(audios[i]));
+        }
+      }
+
+      window.__quanglnSetPlayerDownloadFormats = function (items) {
+        renderPlayerDownloadMenu(items);
+      };
+
+      function bindEvents() {
+        document.querySelectorAll('.theme-dot').forEach(dot => {
+          dot.addEventListener('click', () => applyTheme(dot.dataset.theme, true));
+        });
+
+        $('btn-open-file').addEventListener('click', () => {
+          $('local-video-input').click();
+        });
+        $('btn-empty-open')?.addEventListener('click', () => {
+          $('local-video-input').click();
+        });
+        $('btn-add-playlist-file').addEventListener('click', () => {
+          $('local-video-input').click();
+        });
+        $('local-video-input').addEventListener('change', (e) => {
+          handleIncomingFiles(e.target.files);
+          e.target.value = '';
+        });
+
+        $('btn-pin-top').addEventListener('click', (e) => {
+          state.pinnedTop = !state.pinnedTop;
+          e.currentTarget.classList.toggle('accent-text', state.pinnedTop);
+          e.currentTarget.classList.toggle('accent-border', state.pinnedTop);
+          e.currentTarget.classList.toggle('accent-soft', state.pinnedTop);
+          sendHostCmd('pin-top', { pinned: state.pinnedTop });
+          showToast(state.pinnedTop ? '📌 Đã bật chế độ Luôn nổi trên cùng (Always on Top)' : 'Đã tắt ghim nổi trên cùng');
+        });
+
+        $('win-min').addEventListener('click', () => sendHostCmd('win-min'));
+        $('win-max').addEventListener('click', () => sendHostCmd('win-max'));
+        $('win-close').addEventListener('click', () => sendHostCmd('win-close'));
+
+        // Double click header to maximize/restore
+        $('player-titlebar').addEventListener('dblclick', (e) => {
+          if (e.target.closest('button')) return;
+          sendHostCmd('win-max');
+        });
+
+        $('stage-play-overlay').addEventListener('click', () => {
+          closeDictPopup();
+          togglePlayPause();
+        });
+
+        const stage = $('video-stage');
+        ['dragenter', 'dragover'].forEach(evt => {
+          stage.addEventListener(evt, (e) => {
+            e.preventDefault();
+            stage.classList.add('drop-active');
+            $('drop-overlay').classList.remove('hidden');
+            $('drop-overlay').classList.add('flex');
+          });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+          stage.addEventListener(evt, (e) => {
+            e.preventDefault();
+            stage.classList.remove('drop-active');
+            $('drop-overlay').classList.add('hidden');
+            $('drop-overlay').classList.remove('flex');
+          });
+        });
+        stage.addEventListener('drop', (e) => handleIncomingFiles(e.dataTransfer.files));
+
+        $('dict-close-btn').addEventListener('click', closeDictPopup);
+        $('dict-speak-btn').addEventListener('click', () => {
+          const word = $('dict-word').textContent;
+          if ('speechSynthesis' in window && word) {
+            const u = new SpeechSynthesisUtterance(word);
+            u.lang = 'en-US';
+            window.speechSynthesis.speak(u);
+          }
+        });
+
+        const seekWrap = $('seek-bar-wrap');
+        let scrubbing = false;
+        const getSeekTimeFromEvent = (e) => {
+          const rect = seekWrap.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          return { ratio, time: ratio * state.duration };
+        };
+
+        const updateTooltip = (e) => {
+          const { ratio, time } = getSeekTimeFromEvent(e);
+          const tt = $('seek-tooltip');
+          tt.classList.remove('hidden');
+          tt.style.left = `${Math.max(8, Math.min(92, ratio * 100))}%`;
+          $('seek-tooltip-time').textContent = formatTime(time);
+          const subs = getCurrentItem()?.subtitles || [];
+          const hit = subs.find(s => time >= s.start && time <= s.end);
+          $('seek-tooltip-text').textContent = hit ? getViText(hit) : '';
+        };
+
+        seekWrap.addEventListener('mousemove', (e) => {
+          updateTooltip(e);
+          if (scrubbing) seekTo(getSeekTimeFromEvent(e).time);
+        });
+        seekWrap.addEventListener('mouseleave', () => {
+          $('seek-tooltip').classList.add('hidden');
+        });
+        seekWrap.addEventListener('mousedown', (e) => {
+          scrubbing = true;
+          seekTo(getSeekTimeFromEvent(e).time);
+        });
+        window.addEventListener('mouseup', () => { scrubbing = false; });
+        seekWrap.addEventListener('touchstart', (e) => {
+          scrubbing = true;
+          seekTo(getSeekTimeFromEvent(e).time);
+        }, { passive: true });
+        seekWrap.addEventListener('touchmove', (e) => {
+          if (scrubbing) seekTo(getSeekTimeFromEvent(e).time);
+        }, { passive: true });
+        window.addEventListener('touchend', () => { scrubbing = false; });
+
+        $('btn-play-pause').addEventListener('click', togglePlayPause);
+        $('btn-back-10').addEventListener('click', () => seekTo(state.currentTime - 10));
+        $('btn-fwd-10').addEventListener('click', () => seekTo(state.currentTime + 10));
+        $('btn-prev').addEventListener('click', () => {
+          if (state.playlist.length === 0) return;
+          const prev = (state.activeIndex - 1 + state.playlist.length) % state.playlist.length;
+          loadPlaylistItem(prev, true);
+        });
+        $('btn-next').addEventListener('click', () => {
+          if (state.playlist.length === 0) return;
+          const next = (state.activeIndex + 1) % state.playlist.length;
+          loadPlaylistItem(next, true);
+        });
+
+        $('volume-slider').addEventListener('input', (e) => {
+          state.volume = Number(e.target.value);
+          state.muted = state.volume === 0;
+          $('icon-vol-on').classList.toggle('hidden', state.muted);
+          $('icon-vol-off').classList.toggle('hidden', !state.muted);
+          applyLocalVideoVolume();
+        });
+        $('btn-mute').addEventListener('click', toggleMute);
+        $('btn-boost-200').addEventListener('click', (e) => {
+          state.boost200 = !state.boost200;
+          e.currentTarget.classList.toggle('accent-soft', state.boost200);
+          e.currentTarget.classList.toggle('accent-border', state.boost200);
+          e.currentTarget.classList.toggle('accent-text', state.boost200);
+          applyLocalVideoVolume();
+          showToast(state.boost200 ? '🔊 Đã bật Khuếch đại âm lượng 200%' : 'Đã đưa âm lượng về chuẩn 100%');
+        });
+
+        $('pill-vietsub').addEventListener('click', () => {
+          state.vietsubEnabled = !state.vietsubEnabled;
+          syncQuickPills();
+          showToast(state.vietsubEnabled ? 'Đã bật phụ đề AI Vietsub' : 'Đã tắt phụ đề AI Vietsub');
+        });
+        $('pill-dubbing').addEventListener('click', () => {
+          state.dubEnabled = !state.dubEnabled;
+          if (!state.dubEnabled) cancelSpeech();
+          syncQuickPills();
+          applyLocalVideoVolume();
+          showToast(state.dubEnabled ? '🎙️ Đã bật AI Lồng tiếng Tiếng Việt' : 'Đã tắt AI Lồng tiếng');
+        });
+
+        $('speed-select').addEventListener('change', (e) => {
+          state.playbackRate = Number(e.target.value);
+          if (state.mpvMode) {
+            sendHostCmd('mpv-speed', { speed: state.playbackRate });
+          } else {
+            localVideo.playbackRate = state.playbackRate;
+            localAudio.playbackRate = state.playbackRate;
+          }
+          showToast(`Tốc độ phát: ${state.playbackRate}x`);
+        });
+
+        const qualitySelect = $('player-quality-select');
+        if (qualitySelect) {
+          qualitySelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (state._hlsInstance) {
+              const levelIdx = parseInt(val, 10);
+              state._hlsInstance.currentLevel = levelIdx;
+              if (levelIdx === -1) {
+                showToast('Chất lượng video: Tự động (Thích ứng theo mạng)');
+              } else {
+                const lvl = state._hlsInstance.levels[levelIdx];
+                const h = lvl?.height || val;
+                showToast(`Đã chuyển độ phân giải sang: ${h}p`);
+                const qbt3 = $('quality-badge-text');
+                if (qbt3) qbt3.textContent = `${h}p • HLS`;
+              }
+            } else {
+              const cur = getCurrentItem();
+              if (cur && cur.sourcePageUrl && !String(cur.sourcePageUrl).startsWith('blob:')) {
+                showToast(`Đang yêu cầu luồng ${val}...`);
+                sendHostCmd('ytdlp-resolve', { url: cur.sourcePageUrl || cur.objectUrl, quality: val, autoPlay: true });
+              } else {
+                showToast(`Chất lượng video: ${val.toUpperCase()}`);
+              }
+            }
+          });
+        }
+
+        const dlBtn = $('btn-player-download');
+        const dlMenu = $('player-download-menu');
+        const dlCloseBtn = $('btn-close-player-dl');
+        if (dlCloseBtn) {
+          dlCloseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dlMenu?.classList.add('hidden');
+          });
+        }
+        if (dlBtn && dlMenu) {
+          dlBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dlMenu.classList.toggle('hidden');
+          });
+
+          document.addEventListener('click', (e) => {
+            if (!e.target.closest('#btn-player-download') && !e.target.closest('#player-download-menu')) {
+              dlMenu.classList.add('hidden');
+            }
+          });
+        }
+
+        renderPlayerDownloadMenu();
+
+        $('btn-quality-badge')?.addEventListener('click', () => {
+          openStudioAndTab('tools');
+        });
+        $('btn-screenshot').addEventListener('click', captureScreenshot);
+
+        $('btn-pip').addEventListener('click', async () => {
+          const item = getCurrentItem();
+          if (item.type === 'local' && document.pictureInPictureEnabled) {
+            try {
+              if (document.pictureInPictureElement) await document.exitPictureInPicture();
+              else await localVideo.requestPictureInPicture();
+              return;
+            } catch (e) {}
+          }
+          state.pipActive = !state.pipActive;
+          $('mini-pip-box').classList.toggle('hidden', !state.pipActive);
+          showToast(state.pipActive ? 'Đã bật cửa sổ Mini PiP nổi' : 'Đã tắt Mini PiP');
+        });
+        $('btn-close-pip').addEventListener('click', () => {
+          state.pipActive = false;
+          $('mini-pip-box').classList.add('hidden');
+        });
+
+        const toggleStudio = () => {
+          state.studioOpen = !state.studioOpen;
+          $('ai-studio-sidebar').classList.toggle('collapsed', !state.studioOpen);
+          setTimeout(resizeCanvas, 260);
+        };
+        $('btn-toggle-studio').addEventListener('click', toggleStudio);
+        $('btn-close-studio').addEventListener('click', toggleStudio);
+        $('btn-fullscreen').addEventListener('click', toggleFullscreen);
+
+        document.querySelectorAll('.studio-tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => setStudioTab(btn.dataset.studioTab));
+        });
+
+        $('toggle-vietsub-master').addEventListener('click', () => {
+          state.vietsubEnabled = !state.vietsubEnabled;
+          syncQuickPills();
+        });
+
+        $('btn-scan-vietsub').addEventListener('click', (e) => {
+          const btn = e.currentTarget;
+          if (btn.disabled) return;
+          const item = getCurrentItem();
+          if (!item) {
+            showToast('Hãy mở một video trước khi quét phụ đề AI Vietsub');
+            return;
+          }
+
+          const subs = item.subtitles || [];
+          const srcLang = $('sel-src-lang').value || 'auto';
+
+          if (subs.length === 0 && !item.sourcePageUrl) {
+            showToast('Video cục bộ chưa có phụ đề — hãy bấm "Nạp file .SRT/.ASS" để AI dịch & lồng tiếng');
+            return;
+          }
+
+          btn.disabled = true;
+          btn.classList.add('opacity-70');
+          const box = $('scan-progress-box');
+          const bar = $('scan-progress-bar');
+          const stageLbl = $('scan-stage-label');
+          const pctLbl = $('scan-pct-label');
+          box.classList.remove('hidden');
+          bar.style.width = '45%';
+          pctLbl.textContent = '45%';
+          stageLbl.textContent = '1/2 • Đang kết nối máy chủ video và dò tìm tệp phụ đề rời...';
+
+          if (item.sourcePageUrl && subs.length === 0) {
+            sendHostCmd('rescan-vietsub', { url: item.sourcePageUrl, srcLang });
+          } else {
+            sendHostCmd('translate-subtitles', {
+              lines: subs.map(s => s.en || s.vi || '')
+            });
+          }
+        });
+
+        $('btn-close-no-sub-modal').addEventListener('click', closeNoSubtitlesModal);
+        $('btn-modal-pick-srt').addEventListener('click', () => {
+          closeNoSubtitlesModal();
+          sendHostCmd('pick-subtitle-file');
+        });
+        $('btn-modal-search-sub').addEventListener('click', () => {
+          const title = getCurrentItem()?.title || '';
+          closeNoSubtitlesModal();
+          sendHostCmd('search-subtitles-online', { query: title });
+        });
+        $('btn-modal-demo-dub').addEventListener('click', () => {
+          closeNoSubtitlesModal();
+          sendHostCmd('load-sample-subtitles');
+        });
+
+        $('sel-trans-style').addEventListener('change', (e) => {
+          state.transStyle = e.target.value;
+          renderTranscript();
+          updateSubtitleForTime(state.currentTime);
+          const lbl = e.target.options[e.target.selectedIndex].text;
+          showToast(`Phong cách dịch AI: ${lbl}`);
+        });
+
+        $('sel-src-lang').addEventListener('change', (e) => {
+          showToast(`Ngôn ngữ nguồn: ${e.target.options[e.target.selectedIndex].text}`);
+        });
+
+        document.querySelectorAll('.sub-mode-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.subDisplayMode = btn.dataset.submode;
+            document.querySelectorAll('.sub-mode-btn').forEach(b => {
+              const act = b.dataset.submode === state.subDisplayMode;
+              b.className = `sub-mode-btn py-1 rounded-md text-[11px] transition ${
+                act ? 'font-bold accent-soft accent-text border accent-border' : 'font-semibold text-slate-400 hover:text-white'
+              }`;
+            });
+            updateDubbingHUD();
+            updateSubtitleForTime(state.currentTime);
+          });
+        });
+
+        $('sl-sub-size').addEventListener('input', (e) => {
+          state.subFontSize = Number(e.target.value);
+          $('lbl-sub-size').textContent = `${state.subFontSize}px`;
+          updateSubtitleForTime(state.currentTime);
+        });
+        $('sl-sub-bg').addEventListener('input', (e) => {
+          state.subBgOpacity = Number(e.target.value);
+          $('lbl-sub-bg').textContent = `${state.subBgOpacity}%`;
+          updateSubtitleForTime(state.currentTime);
+        });
+        $('sl-sub-pos').addEventListener('input', (e) => {
+          state.subVerticalOffset = Number(e.target.value);
+          $('lbl-sub-pos').textContent = `${state.subVerticalOffset}%`;
+          updateSubtitleForTime(state.currentTime);
+        });
+        $('sl-sub-sync').addEventListener('input', (e) => {
+          state.subSyncOffset = Number(e.target.value);
+          $('lbl-sub-sync').textContent = `${state.subSyncOffset >= 0 ? '+' : ''}${state.subSyncOffset.toFixed(1)}s`;
+          updateSubtitleForTime(state.currentTime);
+        });
+
+        $('btn-import-srt').addEventListener('click', () => $('local-srt-input').click());
+        $('local-srt-input').addEventListener('change', (e) => {
+          handleIncomingFiles(e.target.files);
+          e.target.value = '';
+        });
+        $('btn-export-srt').addEventListener('click', exportCurrentSrt);
+
+        $('toggle-dub-master').addEventListener('click', () => {
+          state.dubEnabled = !state.dubEnabled;
+          if (!state.dubEnabled) cancelSpeech();
+          syncQuickPills();
+          applyLocalVideoVolume();
+        });
+        $('toggle-vocal-sep').addEventListener('click', (e) => {
+          state.vocalSep = !state.vocalSep;
+          e.currentTarget.classList.toggle('on', state.vocalSep);
+          showToast(state.vocalSep ? 'Đã bật tách giọng gốc (Giữ nguyên BGM & SFX)' : 'Đã tắt tách giọng gốc');
+        });
+        $('toggle-lipsync').addEventListener('click', (e) => {
+          state.autoLipSync = !state.autoLipSync;
+          e.currentTarget.classList.toggle('on', state.autoLipSync);
+          showToast(state.autoLipSync ? 'Đã bật tự động khớp thời lượng đọc (Auto Lip-Sync)' : 'Đã tắt Auto Lip-Sync');
+        });
+
+        document.querySelectorAll('.emotion-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.emotion = btn.dataset.emotion;
+            document.querySelectorAll('.emotion-btn').forEach(b => {
+              const act = b.dataset.emotion === state.emotion;
+              b.className = `emotion-btn py-1.5 rounded-lg text-[11px] border transition ${
+                act ? 'font-bold accent-soft accent-border accent-text' : 'font-semibold bg-outer border-line text-slate-400 hover:text-white'
+              }`;
+            });
+          });
+        });
+
+        $('sl-ai-rate').addEventListener('input', (e) => {
+          state.aiRate = Number(e.target.value);
+          $('lbl-ai-rate').textContent = `${state.aiRate.toFixed(2)}x`;
+        });
+
+        $('btn-preview-voice').addEventListener('click', () => {
+          let sample = 'Xin chào! Đây là giọng đọc AI Tiếng Việt được tích hợp trực tiếp trên QUANGLN Player.';
+          let previewGender = 'male';
+          switch (state.voiceProfile) {
+            case 'quan':
+              sample = 'Xin chào, tôi là Minh Quân. Giọng đọc nam miền Nam ấm áp, tự nhiên, rất phù hợp cho phim điện ảnh và đời sống thường ngày.';
+              previewGender = 'male';
+              break;
+            case 'linh':
+              sample = 'Xin chào, tôi là Khánh Linh. Giọng đọc nữ miền Bắc truyền cảm, rõ ràng, phù hợp cho phim tài liệu và anime.';
+              previewGender = 'female';
+              break;
+            case 'nam':
+              sample = 'Xin chào, tôi là Hoàng Nam. Giọng nam trầm kịch tính, chuẩn phong cách review phim và giới thiệu trailer đỉnh cao.';
+              previewGender = 'male';
+              break;
+            case 'vy':
+              sample = 'Xin chào mọi người, mình là Thảo Vy! Giọng nữ trẻ trung, năng động, tươi sáng và giàu cảm xúc.';
+              previewGender = 'female';
+              break;
+            default:
+              sample = 'Chế độ AI tự động nhận diện nhân vật nam và nữ để lồng tiếng chuẩn xác và tự nhiên nhất.';
+              previewGender = 'male';
+              break;
+          }
+          speakVietnameseLine(sample, previewGender, true);
+          showToast(`🔊 Đang phát mẫu giọng đọc: ${VOICE_PROFILES.find(v => v.id === state.voiceProfile)?.name || 'AI'}`);
+        });
+
+        $('sl-mix-ai').addEventListener('input', (e) => {
+          state.mixAi = Number(e.target.value);
+          $('lbl-mix-ai').textContent = `${state.mixAi}%`;
+        });
+        $('sl-mix-orig').addEventListener('input', (e) => {
+          state.mixOrig = Number(e.target.value);
+          $('lbl-mix-orig').textContent = `${state.mixOrig}%`;
+          applyLocalVideoVolume();
+        });
+        $('sl-mix-bgm').addEventListener('input', (e) => {
+          state.mixBgm = Number(e.target.value);
+          $('lbl-mix-bgm').textContent = `${state.mixBgm}%`;
+          applyLocalVideoVolume();
+        });
+
+        $('btn-open-export').addEventListener('click', () => {
+          $('export-progress-panel').classList.add('hidden');
+          $('modal-export').classList.remove('hidden');
+          $('modal-export').classList.add('flex');
+        });
+        const closeExport = () => {
+          $('modal-export').classList.add('hidden');
+          $('modal-export').classList.remove('flex');
+        };
+        $('btn-close-export').addEventListener('click', closeExport);
+        $('btn-cancel-export').addEventListener('click', closeExport);
+        $('btn-start-export').addEventListener('click', (e) => {
+          const btn = e.currentTarget;
+          if (btn.disabled) return;
+          btn.disabled = true;
+          const panel = $('export-progress-panel');
+          const bar = $('export-bar');
+          const pctEl = $('export-pct-text');
+          const stEl = $('export-stage-text');
+          const logEl = $('export-log');
+          panel.classList.remove('hidden');
+
+          let p = 0;
+          const codec = $('exp-codec').value;
+          const res = $('exp-res').value;
+          const timer = setInterval(() => {
+            p = Math.min(100, p + Math.floor(Math.random() * 15) + 9);
+            bar.style.width = `${p}%`;
+            pctEl.textContent = `${p}%`;
+            if (p < 35) stEl.textContent = 'Đang xuất luồng âm thanh AI Lồng tiếng + BGM...';
+            else if (p < 80) stEl.textContent = `Đang mã hóa ${codec} (${res})...`;
+            else stEl.textContent = 'Đang đóng gói phụ đề & hoàn thiện tệp video...';
+            logEl.textContent = `frame=${Math.floor(p * 36)} fps=142.4 q=18.0 bitrate=14820kbits/s speed=4.8x`;
+
+            if (p >= 100) {
+              clearInterval(timer);
+              btn.disabled = false;
+              stEl.textContent = '✨ Xuất video hoàn tất!';
+              showToast(`Đã xuất xong video lồng tiếng (${res} • ${codec})`);
+            }
+          }, 220);
+        });
+
+        $('ytdlp-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const url = $('ytdlp-url-input').value.trim();
+          if (!url) {
+            showToast('Hãy dán đường dẫn video cần phát hoặc tải');
+            return;
+          }
+          $('ytdlp-res-title').textContent = `Đang quét: ${url.replace(/^https?:\/\//, '').slice(0, 42)}`;
+          $('ytdlp-result').classList.remove('hidden');
+          sendHostCmd('ytdlp-resolve', { url, autoPlay: false });
+          showToast('Đang phân tích luồng video qua yt-dlp...');
+        });
+        $('btn-ytdlp-play').addEventListener('click', () => {
+          const q = $('ytdlp-res-picker').value;
+          const url = $('ytdlp-url-input').value.trim();
+          if (!url) {
+            loadPlaylistItem(0, true);
+            return;
+          }
+          showToast(`Đang nạp luồng ${q} vào QUANGLN Player...`);
+          if (/\.(mp4|webm|mkv|mov)(\?.*)?$/i.test(url)) {
+            window.__quanglnPlayerLoadMedia({ url, title: url.split('/').pop() || 'Remote Stream', quality: q });
+          } else {
+            window.__quanglnSetLoading(true, 'Đang phân giải luồng video qua yt-dlp...');
+            sendHostCmd('ytdlp-resolve', { url, autoPlay: true });
+          }
+        });
+        $('btn-ytdlp-dl').addEventListener('click', () => {
+          const q = $('ytdlp-res-picker').value;
+          const url = $('ytdlp-url-input').value.trim();
+          sendHostCmd('ytdlp-download', { url, quality: q });
+          showToast(`⬇ Bắt đầu tải luồng ${q} với tăng tốc đa luồng 8x`);
+        });
+
+        $('toggle-shader-upscale').addEventListener('click', (e) => {
+          state.shaderUpscale = !state.shaderUpscale;
+          e.currentTarget.classList.toggle('on', state.shaderUpscale);
+          applyVideoShaders();
+        });
+        $('toggle-shader-hdr').addEventListener('click', (e) => {
+          state.shaderHdr = !state.shaderHdr;
+          e.currentTarget.classList.toggle('on', state.shaderHdr);
+          applyVideoShaders();
+        });
+        $('toggle-shader-denoise').addEventListener('click', (e) => {
+          state.shaderDenoise = !state.shaderDenoise;
+          e.currentTarget.classList.toggle('on', state.shaderDenoise);
+          applyVideoShaders();
+        });
+
+        document.querySelectorAll('.eq-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.audioEq = btn.dataset.eq;
+            document.querySelectorAll('.eq-btn').forEach(b => {
+              const act = b.dataset.eq === state.audioEq;
+              b.className = `eq-btn py-1.5 rounded-lg text-[11px] border transition ${
+                act ? 'font-bold accent-soft accent-border accent-text' : 'font-semibold bg-outer border-line text-slate-400 hover:text-white'
+              }`;
+            });
+            applyAudioEqPreset();
+            showToast(`Chế độ âm thanh EQ: ${btn.textContent}`);
+          });
+        });
+
+        window.addEventListener('keydown', (e) => {
+          const tag = (document.activeElement?.tagName || '').toUpperCase();
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+          if (e.code === 'Space') {
+            e.preventDefault();
+            togglePlayPause();
+          } else if (e.code === 'ArrowLeft') {
+            e.preventDefault();
+            seekTo(state.currentTime - 5);
+          } else if (e.code === 'ArrowRight') {
+            e.preventDefault();
+            seekTo(state.currentTime + 5);
+          } else if (e.key === 'v' || e.key === 'V') {
+            state.vietsubEnabled = !state.vietsubEnabled;
+            syncQuickPills();
+            showToast(state.vietsubEnabled ? 'AI Vietsub: Bật' : 'AI Vietsub: Tắt');
+          } else if (e.key === 'd' || e.key === 'D') {
+            state.dubEnabled = !state.dubEnabled;
+            if (!state.dubEnabled) cancelSpeech();
+            syncQuickPills();
+            applyLocalVideoVolume();
+            showToast(state.dubEnabled ? 'AI Lồng tiếng: Bật' : 'AI Lồng tiếng: Tắt');
+          } else if (e.key === 'm' || e.key === 'M') {
+            toggleMute();
+          } else if (e.key === 'f' || e.key === 'F') {
+            toggleFullscreen();
+          }
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+      }
+
+      function openStudioAndTab(tabKey) {
+        if (!state.studioOpen) {
+          state.studioOpen = true;
+          $('ai-studio-sidebar').classList.remove('collapsed');
+          setTimeout(resizeCanvas, 260);
+        }
+        setStudioTab(tabKey);
+      }
+
+      function toggleMute() {
+        state.muted = !state.muted;
+        $('icon-vol-on').classList.toggle('hidden', state.muted);
+        $('icon-vol-off').classList.toggle('hidden', !state.muted);
+        if (state.muted) cancelSpeech();
+        applyLocalVideoVolume();
+      }
+
+      function toggleFullscreen() {
+        sendHostCmd('win-fullscreen');
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.().catch(() => {});
+        } else {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         O. C# HOST BRIDGE APIs
+         ----------------------------------------------------------------------- */
+      window.__quanglnApplyTheme = function (themeKey) {
+        applyTheme(themeKey || 'neon', false);
+      };
+
+      window.__quanglnPlayerPause = function () {
+        if (state.playing) {
+          togglePlayPause();
+        }
+      };
+
+      window.__quanglnSetLoading = function (isLoading, message) {
+        const el = $('stream-loading-overlay');
+        if (!el) return;
+        if (message) $('stream-loading-text').textContent = message;
+        el.classList.toggle('hidden', !isLoading);
+        el.classList.toggle('flex', Boolean(isLoading));
+      };
+      window.__quanglnPlayerSetLoading = window.__quanglnSetLoading;
+
+      window.__quanglnShowToast = function (message) {
+        if (typeof showToast === 'function' && message) {
+          showToast(message);
+        }
+      };
+
+      window.__quanglnMpvActivated = function (isActive, mediaInfo) {
+        state.mpvMode = Boolean(isActive);
+        if (state.mpvMode) {
+          $('empty-stage-overlay')?.classList.add('hidden');
+          localVideo.pause();
+          localAudio.pause();
+          localVideo.classList.add('hidden');
+          demoCanvas.classList.add('hidden');
+
+          const displayTitle = (mediaInfo && mediaInfo.title) ? mediaInfo.title : 'QUANGLN Video Stream (libmpv)';
+          $('titlebar-filename').textContent = displayTitle;
+          const subs = (mediaInfo && Array.isArray(mediaInfo.subtitles)) ? mediaInfo.subtitles : [];
+          if (state.playlist.length === 0 || state.playlist[state.activeIndex]?.sourcePageUrl !== (mediaInfo?.url || '')) {
+            state.playlist.unshift({
+              id: 'mpv-' + Date.now(),
+              type: 'local',
+              title: displayTitle,
+              filename: displayTitle,
+              objectUrl: mediaInfo?.url || '',
+              audioUrl: null,
+              sourcePageUrl: mediaInfo?.url || '',
+              duration: 60,
+              res: 'libmpv GPU',
+              chapters: [],
+              subtitles: subs
+            });
+            state.activeIndex = 0;
+            renderPlaylist();
+            renderTranscript();
+            renderSeekHighlights();
+          }
+
+          state.playing = true;
+          updatePlayPauseUI();
+          applyLocalVideoVolume();
+        }
+      };
+
+      window.__quanglnMpvTick = function (pos, dur, isPaused) {
+        if (!state.mpvMode) return;
+        if (Number.isFinite(dur) && dur > 0) {
+          state.duration = dur;
+          const item = getCurrentItem();
+          if (item) item.duration = dur;
+        }
+        if (Number.isFinite(pos) && pos >= 0) {
+          state.currentTime = pos;
+        }
+        state.playing = !isPaused;
+        updatePlayPauseUI();
+        updateSeekBarUI();
+        updateSubtitleForTime(state.currentTime);
+      };
+
+      window.__quanglnPlayTtsAudio = function (dataUri, rate, volume, seq) {
+        if (!dataUri || seq !== ttsSeq) return;
+        clearTimeout(state._browserTtsTimer);
+        try {
+          if ('speechSynthesis' in window) {
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+          }
+          aiDubAudio.pause();
+          aiDubAudio.src = dataUri;
+          aiDubAudio.playbackRate = 1.0; // Tốc độ và cao độ đã được Microsoft Edge Neural TTS tổng hợp chuẩn xác bằng SSML prosody
+          aiDubAudio.volume = Math.min(1.0, Math.max(0.1, Number(volume) || 0.9));
+          aiDubAudio.onplay = () => {
+            state.isAiSpeaking = true;
+            updateDubbingHUD();
+            applyLocalVideoVolume();
+          };
+          aiDubAudio.onended = aiDubAudio.onerror = () => {
+            state.isAiSpeaking = false;
+            updateDubbingHUD();
+            applyLocalVideoVolume();
+          };
+          aiDubAudio.play().catch(() => {
+            state.isAiSpeaking = false;
+            updateDubbingHUD();
+          });
+        } catch (e) {
+          state.isAiSpeaking = false;
+          updateDubbingHUD();
+        }
+      };
+
+      window.__quanglnPlayerLoadMedia = function (mediaObj) {
+        if (!mediaObj || !mediaObj.url) return;
+        window.__quanglnSetLoading(false);
+        const subs = Array.isArray(mediaObj.subtitles) ? mediaObj.subtitles : [];
+        const title = mediaObj.title || 'QUANGLN Stream';
+        const filename = mediaObj.filename || title;
+        state.playlist.unshift({
+          id: 'host-' + Date.now(),
+          type: 'local',
+          title,
+          filename,
+          objectUrl: mediaObj.url,
+          audioUrl: mediaObj.audioUrl || null,
+          sourcePageUrl: mediaObj.sourcePageUrl || mediaObj.url,
+          duration: Number(mediaObj.duration) > 0 ? Number(mediaObj.duration) : 60,
+          res: mediaObj.quality || 'HD Stream',
+          chapters: [],
+          subtitles: subs
+        });
+        loadPlaylistItem(0, true);
+        if (Array.isArray(mediaObj.downloadFormats) && mediaObj.downloadFormats.length > 0) {
+          renderPlayerDownloadMenu(mediaObj.downloadFormats);
+        }
+        if ($('ytdlp-res-title')) {
+          $('ytdlp-res-title').textContent = title;
+        }
+        if (subs.length === 0) {
+          showToast(`Đang phát: ${title} (Video chưa có phụ đề gốc — bạn có thể nạp file .SRT)`);
+        } else {
+          showToast(`✨ Đang phát: ${title} • Đã nạp ${subs.length} dòng AI Vietsub!`);
+        }
+      };
+
+      function openNoSubtitlesModal(title) {
+        const modal = $('modal-no-subtitles');
+        if (!modal) return;
+        const cur = getCurrentItem();
+        const displayTitle = title || cur?.title || 'Phim hiện tại';
+        const titleEl = $('no-sub-movie-title');
+        if (titleEl) {
+          titleEl.textContent = displayTitle;
+        }
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function closeNoSubtitlesModal() {
+        const modal = $('modal-no-subtitles');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+
+      window.__quanglnPlayerLoadSubtitles = function (segments, filename) {
+        const item = getCurrentItem();
+        if (!item) return;
+
+        const btn = $('btn-scan-vietsub');
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-70');
+        }
+
+        const box = $('scan-progress-box');
+        const bar = $('scan-progress-bar');
+        const stageLbl = $('scan-stage-label');
+        const pctLbl = $('scan-pct-label');
+
+        if (!Array.isArray(segments) || segments.length === 0) {
+          if (box) {
+            bar.style.width = '100%';
+            pctLbl.textContent = '100%';
+            stageLbl.textContent = 'Hoàn tất quét: Video không có tệp phụ đề rời trên máy chủ.';
+          }
+          openNoSubtitlesModal(item.title);
+          return;
+        }
+
+        if (box) {
+          bar.style.width = '100%';
+          pctLbl.textContent = '100%';
+          stageLbl.textContent = `2/2 • Đã nạp thành công ${segments.length} dòng phụ đề song ngữ!`;
+        }
+
+        item.subtitles = segments.map((s, idx) => ({
+          start: Number(s.start) || 0,
+          end: Number(s.end) || 5,
+          speaker: s.speaker || `Lời thoại ${idx + 1}`,
+          gender: s.gender || (idx % 2 === 0 ? 'male' : 'female'),
+          en: s.en || s.vi || '',
+          vi: s.vi || s.en || '',
+          customVi: s.vi || s.en || ''
+        }));
+        state.vietsubEnabled = true;
+        renderSeekHighlights();
+        renderTranscript();
+        syncQuickPills();
+        updateSubtitleForTime(state.currentTime);
+        showToast(`✨ Đã nạp ${segments.length} dòng phụ đề AI Vietsub (${filename || 'video hiện tại'})`);
+      };
+
+      window.__quanglnPlayerNoSubtitlesFound = function (movieTitle) {
+        const btn = $('btn-scan-vietsub');
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-70');
+        }
+        const box = $('scan-progress-box');
+        const bar = $('scan-progress-bar');
+        const stageLbl = $('scan-stage-label');
+        const pctLbl = $('scan-pct-label');
+        if (box) {
+          bar.style.width = '100%';
+          pctLbl.textContent = '100%';
+          stageLbl.textContent = 'Hoàn tất quét: Video không có tệp phụ đề rời trên máy chủ.';
+        }
+        openNoSubtitlesModal(movieTitle);
+      };
+
+      window.__quanglnReceiveTranslatedSubtitles = function (translatedLines) {
+        const item = getCurrentItem();
+        if (!item || !Array.isArray(translatedLines)) return;
+        const subs = item.subtitles || [];
+        translatedLines.forEach((viLine, idx) => {
+          if (subs[idx] && viLine) {
+            subs[idx].vi = viLine;
+            subs[idx].customVi = viLine;
+          }
+        });
+        renderTranscript();
+        updateSubtitleForTime(state.currentTime);
+        showToast(`✨ Đã dịch xong ${translatedLines.length} dòng phụ đề sang Tiếng Việt!`);
+      };
+
+      /* -----------------------------------------------------------------------
+         P. BOOTSTRAP ON DOM READY & WINDOW LOAD (CHỐNG LỖI 100%)
+         ----------------------------------------------------------------------- */
+      window.addEventListener('error', function (e) {
+        try {
+          sendHostCmd('js-error', {
+            message: e.message || 'Unknown JS Error',
+            filename: e.filename || '',
+            lineno: e.lineno || 0,
+            colno: e.colno || 0
+          });
+        } catch (_) {}
+      });
+
+      function bootstrapPlayer() {
+        if (window.__quanglnPlayerBootstrapped) return;
+        window.__quanglnPlayerBootstrapped = true;
+
+        try { applyTheme('neon', false); } catch (e) { console.error('applyTheme error:', e); }
+        try { initSpeechVoices(); } catch (e) { console.error('initSpeechVoices error:', e); }
+        try { resizeCanvas(); } catch (e) { console.error('resizeCanvas error:', e); }
+        try { renderVoiceProfiles(); } catch (e) { console.error('renderVoiceProfiles error:', e); }
+        try { renderPlaylist(); } catch (e) { console.error('renderPlaylist error:', e); }
+        try { renderTranscript(); } catch (e) { console.error('renderTranscript error:', e); }
+        try { syncQuickPills(); } catch (e) { console.error('syncQuickPills error:', e); }
+        try { bindEvents(); } catch (e) { console.error('bindEvents error:', e); }
+        try { updatePlayPauseUI(); } catch (e) { console.error('updatePlayPauseUI error:', e); }
+        try { updateSeekBarUI(); } catch (e) { console.error('updateSeekBarUI error:', e); }
+        try {
+          tickGxResourceMonitor();
+          setInterval(tickGxResourceMonitor, 2000);
+        } catch (e) { console.error('tickGx error:', e); }
+        try { requestAnimationFrame(animationLoop); } catch (e) {}
+
+        // BẮT BUỘC gửi tín hiệu player-ready về C# host để đẩy luồng phát video lập tức
+        sendHostCmd('player-ready');
+      }
+
+      window.bootstrapPlayer = bootstrapPlayer;
+
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        bootstrapPlayer();
+      } else {
+        document.addEventListener('DOMContentLoaded', bootstrapPlayer);
+      }
+      window.addEventListener('load', bootstrapPlayer);
+
+      window.addEventListener('beforeunload', function () {
+        cancelSpeech();
+        if (state._hlsInstance) {
+          try { state._hlsInstance.destroy(); } catch (e) {}
+          state._hlsInstance = null;
+        }
+        try {
+          localVideo.pause();
+          localVideo.removeAttribute('src');
+          localAudio.pause();
+          localAudio.removeAttribute('src');
+          aiDubAudio.pause();
+          aiDubAudio.removeAttribute('src');
+        } catch (e) {}
+      });
+    })();
+  </script>
+</body>
+</html>

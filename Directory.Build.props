@@ -1,0 +1,49 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <!-- Ép cứng kiến trúc x64 cho toàn bộ Solution -->
+    <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</Platform>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+
+    <!-- Thông tin ứng dụng -->
+    <Product>QUANGLN Browser</Product>
+    <Company>QUANGLN</Company>
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+  </PropertyGroup>
+
+  <!-- Tách TargetFramework: Core thuần net8.0, các project còn lại dùng Windows 10/11 SDK -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'QUANGLNBrowser.Core'">
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'QUANGLNBrowser.Core'">
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <!-- Tự động copy native binaries (win-x64) vào thư mục output của QUANGLNBrowser.App -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'QUANGLNBrowser.App'">
+    <None Include="$(MSBuildThisFileDirectory)native\win-x64\*.exe"
+          Condition="Exists('$(MSBuildThisFileDirectory)native\win-x64')"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="native\%(Filename)%(Extension)" />
+    <None Include="$(MSBuildThisFileDirectory)native\win-x64\*.dll"
+          Condition="Exists('$(MSBuildThisFileDirectory)native\win-x64')"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Chặn build ngay nếu bất kỳ project nào lệch khỏi x64 -->
+  <Target Name="EnforceX64Platform" BeforeTargets="BeforeBuild">
+    <Error Condition="'$(PlatformTarget)' != 'x64'"
+           Text="QUANGLN Browser bắt buộc PlatformTarget=x64 để tương thích CefSharp, libmpv và các thư viện native. Giá trị hiện tại: $(PlatformTarget)." />
+  </Target>
+</Project>

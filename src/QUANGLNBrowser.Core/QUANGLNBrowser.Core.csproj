@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- TargetFramework = net8.0 và PlatformTarget = x64 kế thừa từ Directory.Build.props -->
+</Project>

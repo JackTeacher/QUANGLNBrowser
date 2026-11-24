@@ -1,0 +1,20 @@
+# Build outputs
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+
+# Native binaries (tải bằng setup-native.ps1)
+native/win-x64/*.exe
+native/win-x64/*.dll
+
+# Runtime data & Encrypted Vaults
+*.db
+*.db-wal
+*.db-shm
+cef_cache/
+logs/
+*.log

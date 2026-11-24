@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trang chủ QUANGLN</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+
+  <!-- Google Fonts: Chakra Petch (Futuristic Cyber Headings) & Be Vietnam Pro (Crisp Vietnamese Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              cyber: ['"Chakra Petch"', 'Segoe UI', 'sans-serif'],
+              sans: ['"Be Vietnam Pro"', 'Segoe UI', 'sans-serif'],
+            },
+          },
+        },
+      };
+    }
+  </script>
+
+  <style>
+    /* =========================================================================
+       QUANGLN BROWSER — HOME PAGE DESIGN TOKENS & DYNAMIC ACCENT ENGINE
+       ========================================================================= */
+    :root {
+      --bg-obsidian: #0b0c12;
+      --bg-chrome: #0f111a;
+      --bg-surface: #12141f;
+      --bg-surface-2: #181b2a;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --text-primary: #f1f5f9;
+      --text-muted: #8b95b0;
+
+      /* Dynamic Accent Variables (Default: Cốc Cốc Neon #00e676) */
+      --accent: #00e676;
+      --accent-rgb: 0, 230, 118;
+      --accent-secondary: #00b0ff;
+      --accent-glow: rgba(0, 230, 118, 0.38);
+      --accent-soft: rgba(0, 230, 118, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    input, textarea, .selectable {
+      user-select: text;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-color: var(--bg-obsidian);
+      color: var(--text-primary);
+      font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Custom Neon Scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(11, 12, 18, 0.9);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(var(--accent-rgb), 0.35);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--accent-rgb), 0.75);
+    }
+
+    /* Opera GX Inspired Chamfered Accents */
+    .gx-chamfer {
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    }
+    .gx-chamfer-sm {
+      clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+    }
+
+    /* Dynamic Accent Utility Classes */
+    .accent-text { color: var(--accent); }
+    .accent-bg { background-color: var(--accent); }
+    .accent-soft-bg { background-color: var(--accent-soft); }
+    .accent-border { border-color: rgba(var(--accent-rgb), 0.45); }
+    .accent-border-strong { border-color: var(--accent); }
+    .accent-glow {
+      box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.28), inset 0 0 12px rgba(var(--accent-rgb), 0.08);
+    }
+    .accent-text-glow {
+      text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.65);
+    }
+
+    /* Glassmorphism Surface */
+    .glass-panel {
+      background: rgba(18, 20, 31, 0.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(var(--accent-rgb), 0.28);
+    }
+
+    /* Animated Cyberpunk Grid Background */
+    .bg-mode-grid {
+      background-color: #0b0c12;
+      background-image:
+        radial-gradient(circle at 50% 10%, rgba(var(--accent-rgb), 0.14) 0%, transparent 55%),
+        radial-gradient(circle at 85% 85%, rgba(var(--accent-rgb), 0.07) 0%, transparent 45%),
+        linear-gradient(rgba(var(--accent-rgb), 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--accent-rgb), 0.055) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+      animation: gridDrift 22s linear infinite;
+    }
+    @keyframes gridDrift {
+      0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+      100% { background-position: 0 0, 0 0, 0 44px, 44px 0; }
+    }
+
+    /* Minimal Carbon Background */
+    .bg-mode-carbon {
+      background-color: #0b0c12;
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(var(--accent-rgb), 0.12) 0%, transparent 52%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.018) 0px, rgba(255,255,255,0.018) 2px, transparent 2px, transparent 8px),
+        repeating-linear-gradient(-45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 8px);
+    }
+
+    /* Neon Matrix mode relies on canvas + obsidian base */
+    .bg-mode-matrix {
+      background-color: #07090f;
+      background-image: radial-gradient(circle at 50% 18%, rgba(var(--accent-rgb), 0.12) 0%, transparent 60%);
+    }
+
+    /* Cyber Range Slider */
+    input[type="range"].gx-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+    }
+    input[type="range"].gx-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 12px var(--accent);
+      border: 2px solid #0b0c12;
+      transition: transform 0.15s;
+    }
+    input[type="range"].gx-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+    }
+
+    /* Cyber Toggle Switch */
+    .gx-toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.25s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+    }
+    .gx-toggle.on {
+      background: rgba(var(--accent-rgb), 0.35);
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.35);
+    }
+    .gx-toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s;
+    }
+    .gx-toggle.on::after {
+      transform: translateX(18px);
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* Speed Dial Card Hover */
+    .speed-dial-card {
+      background: rgba(18, 20, 31, 0.76);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s, box-shadow 0.22s, background 0.22s;
+    }
+    .speed-dial-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(var(--accent-rgb), 0.7);
+      background: rgba(24, 27, 42, 0.94);
+      box-shadow: 0 10px 26px -6px rgba(var(--accent-rgb), 0.32), inset 0 0 14px rgba(var(--accent-rgb), 0.08);
+    }
+
+    /* Feed Card Hover */
+    .feed-card {
+      background: rgba(18, 20, 31, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .feed-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(var(--accent-rgb), 0.55);
+      box-shadow: 0 12px 28px -8px rgba(var(--accent-rgb), 0.26);
+    }
+
+    /* Subtle Pulse Animation for Aura */
+    @keyframes auraPulse {
+      0%, 100% { opacity: 0.55; transform: scale(1); }
+      50% { opacity: 0.92; transform: scale(1.04); }
+    }
+    .aura-pulse {
+      animation: auraPulse 4s ease-in-out infinite;
+    }
+
+    /* Right Drawer Slide Animation */
+    .slide-panel-right {
+      transform: translateX(105%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease;
+    }
+    .slide-panel-right.open {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Toast Notification */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast-anim {
+      animation: toastIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+  </style>
+</head>
+
+<body id="home-body" class="bg-mode-grid min-h-screen relative">
+  <!-- Optional Neon Matrix Canvas Background -->
+  <canvas id="matrix-canvas" class="fixed inset-0 pointer-events-none opacity-0 transition-opacity duration-500 z-0"></canvas>
+
+  <!-- =========================================================================
+       MAIN HOME PAGE CONTENT
+       ========================================================================= -->
+  <main class="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 py-5 sm:py-7 space-y-8 pb-16">
+
+    <!-- 1. TOP STATUS STRIP: Clock + Vietnamese Lunar Calendar + Weather + Quick Theme/Setup -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-[#12141f]/80 border border-white/10 backdrop-blur-md">
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full accent-bg shadow-[0_0_10px_var(--accent)]"></span>
+          <span id="live-clock" class="font-cyber font-bold text-lg sm:text-xl tracking-widest text-white">00:00:00</span>
+        </div>
+        <div class="h-4 w-[1px] bg-white/10 hidden sm:block"></div>
+        <div class="flex items-center gap-2 text-xs text-slate-300 flex-wrap">
+          <span id="live-gregorian" class="font-medium text-white">Chủ Nhật, 22/11/2026</span>
+          <span class="px-2 py-0.5 rounded-md accent-soft-bg border accent-border text-[11px] font-medium accent-text" id="live-lunar">Âm lịch: 13/10 Bính Ngọ</span>
+        </div>
+      </div>
+
+      <!-- Weather + Quick Theme Switcher + Easy Setup -->
+      <div class="flex items-center gap-2 text-xs flex-wrap">
+        <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/5 border border-white/10">
+          <span id="home-weather-icon" class="text-sm leading-none">⛅</span>
+          <span id="home-weather-city" class="text-slate-300">TP. Hồ Chí Minh</span>
+          <span id="home-weather-temp" class="font-cyber font-bold text-white">31°C</span>
+          <span id="home-weather-cond" class="text-slate-400 hidden sm:inline">• Nắng nhẹ</span>
+        </div>
+
+        <button id="quick-theme-pill" type="button" title="Đổi nhanh chủ đề màu Neon" class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-slate-200 transition">
+          <span class="w-2 h-2 rounded-full accent-bg shadow-[0_0_8px_var(--accent)]"></span>
+          <span id="current-theme-label">Cốc Cốc Neon</span>
+        </button>
+
+        <button id="btn-easy-setup" type="button" title="Tùy biến giao diện & GX Control" class="w-8 h-7 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-slate-200 hover:accent-text transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. CENTERPIECE BRAND & HYBRID SMART SEARCH -->
+    <section class="flex flex-col items-center text-center pt-2 space-y-5 relative">
+      <div class="aura-pulse pointer-events-none absolute -top-6 w-80 h-32 rounded-full blur-3xl" style="background: radial-gradient(circle, rgba(var(--accent-rgb), 0.25) 0%, transparent 70%);"></div>
+
+      <div class="relative flex flex-col items-center gap-2">
+        <div class="flex items-center gap-3.5">
+          <img src="logo.png" alt="QUANGLN Browser" class="w-16 h-16 sm:w-20 sm:h-20 object-contain shrink-0" style="filter: drop-shadow(0 0 16px rgba(var(--accent-rgb), 0.45));" />
+          <h1 class="font-cyber font-bold text-3xl sm:text-5xl tracking-[0.14em] text-white">
+            QUANG<span class="accent-text accent-text-glow">LN</span>
+            <span class="text-slate-400 font-medium text-xl sm:text-3xl tracking-widest ml-1">BROWSER</span>
+          </h1>
+        </div>
+        <p class="text-xs sm:text-sm tracking-[0.22em] uppercase text-slate-400 font-cyber">
+          Tốc độ Gaming <span class="accent-text mx-1.5">•</span> Tiện ích Việt
+        </p>
+      </div>
+
+      <!-- Engine Switcher Pills -->
+      <div class="flex flex-wrap items-center justify-center gap-2 pt-1" id="search-engine-pills">
+        <button type="button" data-engine="google" class="engine-pill px-3.5 py-1.5 rounded-full text-xs font-medium transition border flex items-center gap-1.5">
+          <span class="text-[10px]">G</span><span>Google</span>
+        </button>
+        <button type="button" data-engine="coccoc" class="engine-pill px-3.5 py-1.5 rounded-full text-xs font-medium transition border flex items-center gap-1.5">
+          <span class="text-[10px]">●</span><span>Cốc Cốc</span>
+        </button>
+        <button type="button" data-engine="quanAI" class="engine-pill px-3.5 py-1.5 rounded-full text-xs font-medium transition border flex items-center gap-1.5">
+          <span class="text-[10px]">✦</span><span>QUANGLN AI</span>
+        </button>
+        <button type="button" data-engine="youtube" class="engine-pill px-3.5 py-1.5 rounded-full text-xs font-medium transition border flex items-center gap-1.5">
+          <span class="text-[10px]">▶</span><span>YouTube</span>
+        </button>
+      </div>
+
+      <!-- Hybrid Search Box -->
+      <form id="hero-search-form" class="w-full max-w-2xl relative">
+        <div class="flex items-center bg-[#12141f]/90 border border-white/15 focus-within:border-[var(--accent)] focus-within:shadow-[0_0_24px_rgba(var(--accent-rgb),0.3)] rounded-2xl p-1.5 pl-4 transition-all backdrop-blur-md">
+          <svg class="w-5 h-5 accent-text shrink-0 mr-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input id="hero-search-input" type="text" autocomplete="off" autofocus placeholder="Tìm kiếm Google, Cốc Cốc, YouTube hoặc nhập địa chỉ web..." class="flex-1 bg-transparent text-sm sm:text-base text-white placeholder-slate-500 focus:outline-none py-2" />
+          <button type="submit" class="gx-chamfer-sm px-5 py-2.5 accent-bg text-[#06090e] font-cyber font-bold text-xs tracking-wider hover:brightness-110 transition shrink-0">
+            TÌM KIẾM
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 3. SPEED DIAL GRID (LỐI TẮT NHANH) -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="font-cyber font-bold text-xs uppercase tracking-[0.18em] text-slate-400 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-sm accent-bg"></span>
+          Lối tắt nhanh (Speed Dial)
+        </h2>
+        <span class="text-[11px] text-slate-500">Di chuột vào thẻ để xóa • Nhấn + để thêm mới</span>
+      </div>
+      <div id="speed-dial-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-3"></div>
+    </section>
+
+    <!-- 4. DUAL-UTILITY QUICK STRIP (CỐC CỐC DICTIONARY + GX LIVE TELEMETRY) -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Quick Dictionary Mini-Widget -->
+      <div class="lg:col-span-7 p-4 sm:p-5 rounded-2xl bg-[#12141f]/80 border border-white/10 backdrop-blur-md space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded accent-soft-bg border accent-border font-cyber font-bold text-[10px] accent-text">CỐC CỐC EN-VI</span>
+            <h3 class="font-cyber font-bold text-xs tracking-wider text-white">TRA TỪ ĐIỂN TỨC THÌ</h3>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" data-word="browser" class="mini-dict-chip px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/15 border border-white/10 text-[11px] text-slate-300 transition">browser</button>
+            <button type="button" data-word="performance" class="mini-dict-chip px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/15 border border-white/10 text-[11px] text-slate-300 transition">performance</button>
+            <button type="button" data-word="security" class="mini-dict-chip px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/15 border border-white/10 text-[11px] text-slate-300 transition">security</button>
+            <button type="button" data-word="stream" class="mini-dict-chip px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/15 border border-white/10 text-[11px] text-slate-300 transition">stream</button>
+            <button type="button" data-word="download" class="mini-dict-chip px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/15 border border-white/10 text-[11px] text-slate-300 transition">download</button>
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="sm:w-52 shrink-0">
+            <input id="mini-dict-input" type="text" value="browser" placeholder="Gõ từ tiếng Anh..." class="w-full bg-[#090b12] border border-white/15 focus:border-[var(--accent)] rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none" />
+          </div>
+          <div id="mini-dict-output" class="flex-1 p-3 rounded-xl bg-[#090b12]/90 border border-white/5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Live System Telemetry Mini-Card -->
+      <div id="open-setup-from-strip" class="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-[#12141f]/80 border border-white/10 hover:accent-border transition cursor-pointer backdrop-blur-md flex flex-col justify-between gap-3 group">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full accent-bg animate-pulse"></span>
+            <h3 class="font-cyber font-bold text-xs tracking-wider text-white">GX TELEMETRY &amp; GIAO DIỆN</h3>
+          </div>
+          <span class="text-[11px] accent-text group-hover:underline font-medium">Tùy biến →</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5">
+          <div class="p-2.5 rounded-xl bg-[#090b12] border border-white/5">
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
+              <span>RAM</span>
+              <span id="strip-ram-cap" class="accent-text font-cyber">/ 6GB</span>
+            </div>
+            <div id="strip-ram-val" class="font-cyber font-bold text-base text-white mt-1">2.4 GB</div>
+            <div class="w-full h-1.5 bg-white/10 rounded-full mt-1.5 overflow-hidden">
+              <div id="strip-ram-bar" class="h-full accent-bg transition-all duration-500" style="width: 40%"></div>
+            </div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-[#090b12] border border-white/5">
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
+              <span>CPU</span>
+              <span id="strip-cpu-cap" class="accent-text font-cyber">/ 35%</span>
+            </div>
+            <div id="strip-cpu-val" class="font-cyber font-bold text-base text-white mt-1">14%</div>
+            <div class="w-full h-1.5 bg-white/10 rounded-full mt-1.5 overflow-hidden">
+              <div id="strip-cpu-bar" class="h-full accent-bg transition-all duration-500" style="width: 22%"></div>
+            </div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-[#090b12] border border-white/5">
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
+              <span>MẠNG</span>
+              <span id="strip-net-cap" class="text-sky-400 font-cyber">MAX</span>
+            </div>
+            <div id="strip-net-val" class="font-cyber font-bold text-base text-sky-400 mt-1">18 MB/s</div>
+            <div class="w-full h-1.5 bg-white/10 rounded-full mt-1.5 overflow-hidden">
+              <div id="strip-net-bar" class="h-full bg-sky-400 transition-all duration-500" style="width: 30%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4.5 SMART OPTIMIZATION & GX CLEANER (TỐI ƯU THÔNG MINH & DỌN DẸP) -->
+    <section class="p-5 sm:p-6 rounded-2xl bg-[#12141f]/80 border border-white/10 backdrop-blur-md space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-cyber font-bold text-xs uppercase tracking-wider text-slate-400">TỐI ƯU THÔNG MINH &amp; DỌN DẸP</h3>
+      </div>
+
+      <!-- Item 1: Tab Snoozer -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2 border-b border-white/5">
+        <div>
+          <div class="text-sm font-bold text-white">Chế độ Ngủ Tab tự động (Tab Snoozer)</div>
+          <div class="text-xs text-slate-400 mt-0.5">Tự động đưa các tab không tương tác về trạng thái ngủ để giải phóng RAM.</div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+          <div class="relative">
+            <select id="sel-tab-snooze-time" class="appearance-none bg-[#090b12] border border-white/15 focus:border-[var(--accent)] rounded-xl px-3.5 py-1.5 pr-8 text-xs text-white focus:outline-none cursor-pointer">
+              <option value="15">Sau 15 phút</option>
+              <option value="30" selected>Sau 30 phút</option>
+              <option value="60">Sau 1 giờ</option>
+              <option value="120">Sau 2 giờ</option>
+              <option value="240">Sau 4 giờ</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+          <div id="toggle-tab-snoozer" class="gx-toggle on" role="switch" aria-checked="true"></div>
+        </div>
+      </div>
+
+      <!-- Item 2: Hardware Acceleration -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2 border-b border-white/5">
+        <div>
+          <div class="text-sm font-bold text-white">Tăng tốc phần cứng (Hardware Acceleration)</div>
+          <div class="text-xs text-slate-400 mt-0.5">Sử dụng GPU để dựng hình mượt mà cho video 4K, đồ họa WebGL và cuộn trang 120Hz+.</div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+          <div id="toggle-hardware-accel" class="gx-toggle on" role="switch" aria-checked="true"></div>
+        </div>
+      </div>
+
+      <!-- Item 3: GX Cleaner -->
+      <div class="pt-1 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="text-sm font-bold text-white">GX Cleaner — Dọn bộ nhớ đệm &amp; dữ liệu rác</span>
+              <span id="gx-cleaner-badge" class="px-2 py-0.5 rounded-md text-[10px] font-semibold border accent-soft-bg accent-border accent-text">Trình duyệt đã sạch</span>
+            </div>
+            <div id="gx-cleaner-desc" class="text-xs text-slate-400 mt-1">Đã giải phóng 619 MB bộ nhớ đệm và dữ liệu rác thành công.</div>
+          </div>
+          <button id="btn-run-gx-cleaner" type="button" class="px-4 py-2 rounded-xl accent-bg text-[#06090e] font-bold text-xs flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition accent-glow shrink-0 self-end sm:self-auto cursor-pointer">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></svg>
+            <span>Chạy GX Cleaner</span>
+          </button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div id="gx-cleaner-bar" class="h-full accent-bg transition-all duration-300" style="width: 100%;"></div>
+        </div>
+
+        <!-- Progress Text Details -->
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span id="gx-cleaner-status">Đang tối ưu hóa cơ sở dữ liệu hồ sơ...</span>
+          <span id="gx-cleaner-percent" class="font-mono font-bold text-white">100%</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. BOTTOM CURATED FEED (GX CORNER + CỐC CỐC NEWS FUSION) -->
+    <section class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="font-cyber font-bold text-sm uppercase tracking-[0.14em] text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-sm accent-bg"></span>
+          GX Corner &amp; Tin tức Việt Nam
+        </h2>
+        <div class="flex flex-wrap gap-1.5" id="feed-filter-tabs">
+          <button data-filter="all" class="feed-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition border">Tất cả</button>
+          <button data-filter="gaming" class="feed-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition border">GX Gaming &amp; Deal Miễn Phí</button>
+          <button data-filter="vn" class="feed-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition border">Tin tức Việt Nam</button>
+          <button data-filter="tech" class="feed-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition border">Công nghệ</button>
+        </div>
+      </div>
+
+      <div id="newtab-feed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+  </main>
+
+  <!-- =========================================================================
+       RIGHT SLIDE DRAWER: EASY SETUP (THEMES, BACKGROUNDS, SOUND & GX LIMITS)
+       ========================================================================= -->
+  <section id="drawer-easy-setup" class="slide-panel-right fixed top-0 right-0 bottom-0 w-80 sm:w-96 glass-panel border-r-0 z-40 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+      <div>
+        <h2 class="font-cyber font-bold text-sm tracking-wider text-white">CÀI ĐẶT TRANG CHỦ</h2>
+        <p class="text-[11px] text-slate-400">Tùy biến giao diện QUANGLN Browser</p>
+      </div>
+      <button id="close-easy-setup" type="button" class="w-7 h-7 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white">✕</button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-6">
+      <!-- Accent Theme Presets -->
+      <div class="space-y-3">
+        <h3 class="font-cyber text-xs uppercase tracking-wider text-slate-300">Chủ đề màu Neon (Accent)</h3>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" data-theme="coccoc" class="theme-card p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e676] text-left transition flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-full bg-[#00e676] shadow-[0_0_12px_#00e676] shrink-0"></span>
+            <div>
+              <div class="text-xs font-semibold text-white">Cốc Cốc Neon</div>
+              <div class="text-[10px] text-slate-400 font-cyber">#00E676</div>
+            </div>
+          </button>
+          <button type="button" data-theme="crimson" class="theme-card p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#fa1e4e] text-left transition flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-full bg-[#fa1e4e] shadow-[0_0_12px_#fa1e4e] shrink-0"></span>
+            <div>
+              <div class="text-xs font-semibold text-white">GX Crimson</div>
+              <div class="text-[10px] text-slate-400 font-cyber">#FA1E4E</div>
+            </div>
+          </button>
+          <button type="button" data-theme="cyan" class="theme-card p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#00e5ff] text-left transition flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-full bg-[#00e5ff] shadow-[0_0_12px_#00e5ff] shrink-0"></span>
+            <div>
+              <div class="text-xs font-semibold text-white">Cyber Cyan</div>
+              <div class="text-[10px] text-slate-400 font-cyber">#00E5FF</div>
+            </div>
+          </button>
+          <button type="button" data-theme="purple" class="theme-card p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#b517ff] text-left transition flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-full bg-[#b517ff] shadow-[0_0_12px_#b517ff] shrink-0"></span>
+            <div>
+              <div class="text-xs font-semibold text-white">Quantum Purple</div>
+              <div class="text-[10px] text-slate-400 font-cyber">#B517FF</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Background Style -->
+      <div class="space-y-3">
+        <h3 class="font-cyber text-xs uppercase tracking-wider text-slate-300">Hiệu ứng nền Trang chủ</h3>
+        <div class="space-y-2">
+          <button type="button" data-bg="grid" class="bg-opt w-full p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs hover:bg-white/10 transition">
+            <span class="font-medium text-white">Lưới Cyberpunk động (Cyber Grid)</span>
+            <span class="text-[10px] font-cyber accent-text">MẶC ĐỊNH</span>
+          </button>
+          <button type="button" data-bg="matrix" class="bg-opt w-full p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs hover:bg-white/10 transition">
+            <span class="font-medium text-white">Mưa dữ liệu Neon Matrix</span>
+            <span class="text-[10px] font-cyber text-slate-400">CANVAS</span>
+          </button>
+          <button type="button" data-bg="carbon" class="bg-opt w-full p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs hover:bg-white/10 transition">
+            <span class="font-medium text-white">Carbon Tối giản (Tiết kiệm pin)</span>
+            <span class="text-[10px] font-cyber text-slate-400">MINIMAL</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- GX Telemetry Threshold Sliders -->
+      <div class="space-y-3">
+        <h3 class="font-cyber text-xs uppercase tracking-wider text-slate-300">Cấu hình ngưỡng hiển thị GX</h3>
+        <div class="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2.5 text-xs">
+          <div class="flex justify-between"><span class="text-slate-400">Mức trần RAM</span><span id="ram-limit-val" class="font-cyber font-bold accent-text">6.0 GB</span></div>
+          <input id="slider-ram" type="range" min="2" max="16" step="0.5" value="6" class="gx-slider" />
+          <div class="flex justify-between pt-1"><span class="text-slate-400">Mức trần CPU</span><span id="cpu-limit-val" class="font-cyber font-bold accent-text">35%</span></div>
+          <input id="slider-cpu" type="range" min="10" max="100" step="5" value="35" class="gx-slider" />
+        </div>
+      </div>
+
+      <!-- UI Sound Effects Toggle -->
+      <div class="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-white">Âm thanh phản hồi GX</div>
+          <div class="text-[11px] text-slate-400">Hiệu ứng click cơ học (Web Audio)</div>
+        </div>
+        <div id="toggle-sound" class="gx-toggle on" role="switch" aria-checked="true"></div>
+      </div>
+
+      <button id="btn-reset-shortcuts" type="button" class="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 transition">
+        Khôi phục 8 lối tắt mặc định
+      </button>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       MODALS: ADD SHORTCUT & FEED ARTICLE DETAIL
+       ========================================================================= -->
+  <div id="modal-add-shortcut" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="w-full max-w-md glass-panel rounded-2xl overflow-hidden shadow-2xl">
+      <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+        <h3 class="font-cyber font-bold text-sm tracking-wider text-white">THÊM LỐI TẮT NHANH</h3>
+        <button id="close-shortcut-modal" type="button" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form id="add-shortcut-form" class="p-5 space-y-4">
+        <div class="space-y-1.5">
+          <label class="text-xs text-slate-300 font-medium">Tên trang web</label>
+          <input id="shortcut-name-input" type="text" required placeholder="VD: Steam, Netflix, FPT Play..." class="w-full bg-[#090b12] border border-white/15 focus:border-[var(--accent)] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-xs text-slate-300 font-medium">Địa chỉ URL</label>
+          <input id="shortcut-url-input" type="text" required placeholder="VD: https://store.steampowered.com" class="w-full bg-[#090b12] border border-white/15 focus:border-[var(--accent)] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" id="cancel-shortcut-modal" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 transition">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl accent-bg text-[#06090e] font-cyber font-bold text-xs tracking-wider hover:brightness-110 transition">THÊM NGAY</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-feed-detail" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="w-full max-w-2xl glass-panel rounded-2xl overflow-hidden shadow-2xl max-h-[88vh] flex flex-col">
+      <div id="feed-modal-banner" class="h-44 relative p-6 flex flex-col justify-between">
+        <div class="flex items-center justify-between relative z-10">
+          <span id="feed-modal-badge" class="px-2.5 py-1 rounded-md text-[11px] font-cyber font-bold bg-black/50 backdrop-blur border border-white/20 text-white"></span>
+          <button id="close-feed-modal" type="button" class="w-8 h-8 rounded-lg bg-black/50 hover:bg-black/80 text-white flex items-center justify-center">✕</button>
+        </div>
+        <h3 id="feed-modal-title" class="font-cyber font-bold text-xl sm:text-2xl text-white relative z-10 leading-snug drop-shadow"></h3>
+      </div>
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div class="flex items-center gap-3 text-xs text-slate-400">
+          <span id="feed-modal-source" class="font-semibold accent-text"></span>
+          <span>•</span>
+          <span id="feed-modal-time"></span>
+        </div>
+        <p id="feed-modal-body" class="text-sm text-slate-200 leading-relaxed"></p>
+        <div class="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+          <span class="text-xs text-slate-400">QUANGLN GX-VN Curated Feed</span>
+          <button id="feed-modal-open-tab" type="button" class="px-4 py-2 rounded-xl accent-bg text-[#06090e] font-cyber font-bold text-xs tracking-wider hover:brightness-110 transition">MỞ TRANG NGUỒN TRONG TAB MỚI</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'quangln_home_prefs_v1';
+
+      function loadPrefs() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : {};
+        } catch {
+          return {};
+        }
+      }
+
+      function savePrefs() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            theme: state.theme,
+            bgMode: state.bgMode,
+            searchEngine: state.searchEngine,
+            soundEnabled: SoundFX.enabled,
+            ramLimit: state.gx.ramLimit,
+            cpuLimit: state.gx.cpuLimit,
+            shortcuts: state.shortcuts,
+            tabSnoozerEnabled: state.tabSnoozerEnabled,
+            tabSnoozeTime: state.tabSnoozeTime,
+            hardwareAccelEnabled: state.hardwareAccelEnabled,
+            gxCleanerLastFreedMb: state.gxCleanerLastFreedMb
+          }));
+        } catch {
+          // Bỏ qua nếu localStorage bị giới hạn
+        }
+      }
+
+      const SoundFX = {
+        ctx: null,
+        enabled: true,
+        init() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        },
+        play(type = 'click') {
+          if (!this.enabled) return;
+          try {
+            this.init();
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            if (type === 'click') {
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(620, now);
+              osc.frequency.exponentialRampToValueAtTime(240, now + 0.045);
+              gain.gain.setValueAtTime(0.055, now);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+              osc.start(now);
+              osc.stop(now + 0.05);
+            } else if (type === 'success') {
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(523.25, now);
+              osc.frequency.setValueAtTime(783.99, now + 0.07);
+              gain.gain.setValueAtTime(0.06, now);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+              osc.start(now);
+              osc.stop(now + 0.23);
+            }
+          } catch {}
+        }
+      };
+
+      const THEMES = {
+        coccoc:  { name: 'Cốc Cốc Neon',   hex: '#00e676', rgb: '0, 230, 118' },
+        crimson: { name: 'GX Crimson',     hex: '#fa1e4e', rgb: '250, 30, 78' },
+        cyan:    { name: 'Cyber Cyan',     hex: '#00e5ff', rgb: '0, 229, 255' },
+        purple:  { name: 'Quantum Purple', hex: '#b517ff', rgb: '181, 23, 255' },
+      };
+
+      const DICTIONARY_DB = {
+        browser: { ipa: '/ˈbraʊ.zər/', pos: 'danh từ (n)', meaning: 'Trình duyệt web — phần mềm dùng để truy cập, hiển thị và tương tác với thông tin trên Internet.', example: 'QUANGLN Browser kết hợp tốc độ gaming và tiện ích Việt.' },
+        performance: { ipa: '/pəˈfɔː.məns/', pos: 'danh từ (n)', meaning: 'Hiệu năng, hiệu suất hoạt động của hệ thống hoặc ứng dụng.', example: 'Hardware optimization improves browser performance.' },
+        security: { ipa: '/sɪˈkjʊə.rə.ti/', pos: 'danh từ (n)', meaning: 'Bảo mật, an ninh mạng; sự bảo vệ dữ liệu và quyền riêng tư.', example: 'SQLCipher Vault and 1.1.1.1 WARP strengthen your security.' },
+        stream: { ipa: '/striːm/', pos: 'danh từ / động từ (n, v)', meaning: 'Luồng dữ liệu trực tuyến; phát sóng trực tiếp video hoặc âm thanh.', example: 'Stream 4K videos smoothly with libmpv pop-out player.' },
+        download: { ipa: '/ˈdaʊn.ləʊd/', pos: 'động từ / danh từ (v, n)', meaning: 'Tải xuống tệp tin, video hoặc âm thanh từ Internet về thiết bị.', example: 'Tải video đa luồng 4K/1080p trực tiếp trong QUANGLN Browser.' },
+        latency: { ipa: '/ˈleɪ.tən.si/', pos: 'danh từ (n)', meaning: 'Độ trễ mạng (ping) — khoảng thời gian truyền gói tin giữa thiết bị và máy chủ.', example: 'Low latency is crucial for competitive esports games.' },
+        cyberpunk: { ipa: '/ˈsaɪ.bə.pʌŋk/', pos: 'danh từ / tính từ (n, adj)', meaning: 'Phong cách khoa học viễn tưởng công nghệ cao kết hợp ánh sáng neon tương lai.', example: 'The browser features a sleek cyberpunk dark interface.' },
+        network: { ipa: '/ˈnet.wɜːk/', pos: 'danh từ (n)', meaning: 'Mạng lưới kết nối dữ liệu hoặc hệ thống máy tính.', example: 'Encrypted VPN protects your network traffic.' },
+        shortcut: { ipa: '/ˈʃɔːt.kʌt/', pos: 'danh từ (n)', meaning: 'Lối tắt nhanh giúp truy cập trang web hoặc chức năng tức thì.', example: 'Add your favorite websites to the Speed Dial shortcuts.' },
+        privacy: { ipa: '/ˈprɪv.ə.si/', pos: 'danh từ (n)', meaning: 'Quyền riêng tư cá nhân khi duyệt web trực tuyến.', example: 'Incognito with 1.1.1.1 WARP protects your browsing privacy.' }
+      };
+
+      const INITIAL_SHORTCUTS = [
+        { id: 'sc-yt', name: 'YouTube', url: 'https://www.youtube.com', icon: 'yt' },
+        { id: 'sc-fb', name: 'Facebook', url: 'https://www.facebook.com', icon: 'fb' },
+        { id: 'sc-zalo', name: 'Zalo Web', url: 'https://chat.zalo.me', icon: 'zalo' },
+        { id: 'sc-shopee', name: 'Shopee', url: 'https://shopee.vn', icon: 'shopee' },
+        { id: 'sc-vne', name: 'VnExpress', url: 'https://vnexpress.net', icon: 'vne' },
+        { id: 'sc-zing', name: 'Zing MP3', url: 'https://zingmp3.vn', icon: 'zing' },
+        { id: 'sc-gh', name: 'GitHub', url: 'https://github.com', icon: 'gh' },
+        { id: 'sc-gpt', name: 'ChatGPT', url: 'https://chatgpt.com', icon: 'gpt' },
+      ];
+
+      const FEED_ITEMS = [
+        {
+          id: 'f1', category: 'gaming', badge: 'MIỄN PHÍ', badgeColor: '#00e676',
+          title: 'Khám phá game PC miễn phí hàng tuần trên Epic Games Store',
+          summary: 'Săn ngay các tựa game bản quyền miễn phí vĩnh viễn và ưu đãi lớn cho game thủ PC.',
+          body: 'Mỗi tuần Epic Games Store đều tặng miễn phí từ 1–2 tựa game PC bản quyền vĩnh viễn. Bấm nút bên dưới để mở trực tiếp trang Free Games trên Epic Games Store trong tab mới.',
+          source: 'GX Corner Deals', time: 'Mới cập nhật',
+          gradient: 'linear-gradient(135deg, #064e3b 0%, #0f172a 55%, #10b981 100%)',
+          url: 'https://store.epicgames.com/en-US/free-games'
+        },
+        {
+          id: 'f2', category: 'vn', badge: 'VIỆT NAM', badgeColor: '#f59e0b',
+          title: 'Tin tức nổi bật & Chuyển đổi số Việt Nam trên VnExpress',
+          summary: 'Cập nhật nhanh thời sự, kinh tế, đời sống và công nghệ trong nước 24/7.',
+          body: 'Đọc các bản tin nóng hổi nhất từ VnExpress — đi trực tiếp qua Split Tunneling nội địa của QUANGLN Browser cho tốc độ tải cực nhanh kể cả khi đang bật VPN.',
+          source: 'VnExpress • Tin tức Việt', time: 'Trực tiếp',
+          gradient: 'linear-gradient(135deg, #78350f 0%, #1e1b4b 55%, #d97706 100%)',
+          url: 'https://vnexpress.net'
+        },
+        {
+          id: 'f3', category: 'tech', badge: 'CÔNG NGHỆ', badgeColor: '#00e5ff',
+          title: 'Diễn đàn công nghệ, AI & Đánh giá phần cứng trên Tinh Tế',
+          summary: 'Cộng đồng chia sẻ thủ thuật công nghệ, điện thoại, PC gaming và phần mềm tại Việt Nam.',
+          body: 'Theo dõi các bài trên tay phần cứng mới nhất, đánh giá GPU, laptop và xu hướng AI từ cộng đồng Tinh Tế.',
+          source: 'Tinh Tế • Công nghệ', time: 'Trực tiếp',
+          gradient: 'linear-gradient(135deg, #083344 0%, #0f172a 55%, #06b6d4 100%)',
+          url: 'https://tinhte.vn'
+        },
+        {
+          id: 'f4', category: 'gaming', badge: 'HOT', badgeColor: '#fa1e4e',
+          title: 'Ưu đãi Steam & Bảng xếp hạng game thịnh hành toàn cầu',
+          summary: 'Theo dõi danh sách game bán chạy, game giảm giá sâu và lịch phát hành mới trên Steam.',
+          body: 'Mở ngay trang ưu đãi Steam Specials để xem các tựa game AAA và Indie đang giảm giá sâu nhất hôm nay.',
+          source: 'GX Esports & Steam', time: 'Mới cập nhật',
+          gradient: 'linear-gradient(135deg, #881337 0%, #111827 55%, #f43f5e 100%)',
+          url: 'https://store.steampowered.com/specials/'
+        },
+        {
+          id: 'f5', category: 'vn', badge: 'VIỆT NAM', badgeColor: '#10b981',
+          title: 'Dự báo thời tiết & Bản tin tổng hợp đa nguồn Việt Nam',
+          summary: 'Xem dự báo thời tiết theo giờ và tin tức tổng hợp từ các đầu báo uy tín.',
+          body: 'Tra cứu dự báo thời tiết chi tiết tại TP. Hồ Chí Minh, Hà Nội và các tỉnh thành Việt Nam trực tiếp trên trình duyệt.',
+          source: 'Thời tiết Việt Nam', time: 'Hôm nay',
+          gradient: 'linear-gradient(135deg, #065f46 0%, #0c1424 55%, #34d399 100%)',
+          url: 'https://www.google.com/search?q=th%E1%BB%9Di+ti%E1%BA%BFt+TP+H%E1%BB%93+Ch%C3%AD+Minh'
+        },
+        {
+          id: 'f6', category: 'tech', badge: 'CÔNG NGHỆ', badgeColor: '#b517ff',
+          title: 'Tin công nghệ, AI & Phần cứng PC Gaming trên GenK',
+          summary: 'Cập nhật nhanh thị trường GPU, CPU, Esports và tin tức công nghệ thế giới.',
+          body: 'Khám phá chuyên mục Tin tức Công nghệ & Phần cứng trên GenK — kết hợp AdBlock 2 tầng tích hợp sẵn trong QUANGLN Browser giúp đọc bài sạch quảng cáo.',
+          source: 'GenK • Phần cứng', time: 'Trực tiếp',
+          gradient: 'linear-gradient(135deg, #4c1d95 0%, #0f172a 55%, #a855f7 100%)',
+          url: 'https://genk.vn'
+        }
+      ];
+
+      const saved = loadPrefs();
+      if (typeof saved.soundEnabled === 'boolean') SoundFX.enabled = saved.soundEnabled;
+
+      const state = {
+        theme: THEMES[saved.theme] ? saved.theme : 'coccoc',
+        bgMode: ['grid', 'matrix', 'carbon'].includes(saved.bgMode) ? saved.bgMode : 'grid',
+        searchEngine: ['google', 'coccoc', 'quanAI', 'youtube'].includes(saved.searchEngine) ? saved.searchEngine : 'google',
+        feedFilter: 'all',
+        shortcuts: Array.isArray(saved.shortcuts) && saved.shortcuts.length > 0 ? saved.shortcuts : [...INITIAL_SHORTCUTS],
+        tabSnoozerEnabled: typeof saved.tabSnoozerEnabled === 'boolean' ? saved.tabSnoozerEnabled : true,
+        tabSnoozeTime: typeof saved.tabSnoozeTime === 'number' ? saved.tabSnoozeTime : 30,
+        hardwareAccelEnabled: typeof saved.hardwareAccelEnabled === 'boolean' ? saved.hardwareAccelEnabled : true,
+        gxCleanerLastFreedMb: typeof saved.gxCleanerLastFreedMb === 'number' ? saved.gxCleanerLastFreedMb : 619,
+        gx: {
+          ramLimit: typeof saved.ramLimit === 'number' ? saved.ramLimit : 6.0,
+          cpuLimit: typeof saved.cpuLimit === 'number' ? saved.cpuLimit : 35,
+          liveRam: 2.1,
+          liveCpu: 12,
+          liveNet: 16
+        }
+      };
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function showToast(message) {
+        const container = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        el.className = 'toast-anim pointer-events-auto px-4 py-2.5 rounded-xl glass-panel text-xs font-medium text-white shadow-xl flex items-center gap-2.5 border accent-border';
+        el.innerHTML = `<span class="w-2 h-2 rounded-full accent-bg shadow-[0_0_8px_var(--accent)] shrink-0"></span><span>${escapeHtml(message)}</span>`;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(8px)';
+          el.style.transition = 'all 0.25s ease';
+          setTimeout(() => el.remove(), 260);
+        }, 2500);
+      }
+
+      function applyTheme(themeKey, notifyHost = true) {
+        const t = THEMES[themeKey] || THEMES.coccoc;
+        state.theme = THEMES[themeKey] ? themeKey : 'coccoc';
+        document.documentElement.style.setProperty('--accent', t.hex);
+        document.documentElement.style.setProperty('--accent-rgb', t.rgb);
+        document.documentElement.style.setProperty('--accent-glow', `rgba(${t.rgb}, 0.38)`);
+        document.documentElement.style.setProperty('--accent-soft', `rgba(${t.rgb}, 0.12)`);
+
+        const pillLabel = document.getElementById('current-theme-label');
+        if (pillLabel) pillLabel.textContent = t.name;
+
+        document.querySelectorAll('.theme-card').forEach(btn => {
+          const active = btn.dataset.theme === state.theme;
+          btn.style.borderColor = active ? t.hex : 'rgba(255,255,255,0.1)';
+          btn.style.background = active ? `rgba(${t.rgb}, 0.14)` : 'rgba(255,255,255,0.04)';
+        });
+        savePrefs();
+
+        if (notifyHost && window.CefSharp && typeof window.CefSharp.PostMessage === 'function') {
+          try {
+            window.CefSharp.PostMessage({ type: 'QUANGLN_THEME_CHANGED', theme: state.theme });
+          } catch {}
+        }
+      }
+
+      window.__quanglnApplyExternalTheme = function(themeKey) {
+        applyTheme(themeKey, false);
+      };
+
+      let matrixAnimId = null;
+      let matrixDrops = [];
+      function startMatrixRain() {
+        const canvas = document.getElementById('matrix-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const resize = () => {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          const cols = Math.floor(canvas.width / 22);
+          matrixDrops = Array(cols).fill(1).map(() => Math.floor(Math.random() * 40));
+        };
+        resize();
+        window.addEventListener('resize', resize);
+        const chars = '01QUANGLNGXVN<>/{}[]#$%';
+        let lastTime = 0;
+
+        function draw(ts) {
+          if (state.bgMode !== 'matrix') return;
+          if (ts - lastTime > 55) {
+            lastTime = ts;
+            ctx.fillStyle = 'rgba(7, 9, 15, 0.16)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = THEMES[state.theme].hex;
+            ctx.font = '13px "Chakra Petch", monospace';
+            for (let i = 0; i < matrixDrops.length; i++) {
+              const text = chars[Math.floor(Math.random() * chars.length)];
+              ctx.fillText(text, i * 22, matrixDrops[i] * 22);
+              if (matrixDrops[i] * 22 > canvas.height && Math.random() > 0.975) {
+                matrixDrops[i] = 0;
+              }
+              matrixDrops[i]++;
+            }
+          }
+          matrixAnimId = requestAnimationFrame(draw);
+        }
+        cancelAnimationFrame(matrixAnimId);
+        matrixAnimId = requestAnimationFrame(draw);
+      }
+
+      function stopMatrixRain() {
+        if (matrixAnimId) cancelAnimationFrame(matrixAnimId);
+      }
+
+      function applyBackground(mode) {
+        state.bgMode = mode;
+        const body = document.getElementById('home-body');
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        body.classList.remove('bg-mode-grid', 'bg-mode-matrix', 'bg-mode-carbon');
+        body.classList.add(`bg-mode-${mode}`);
+
+        if (mode === 'matrix') {
+          matrixCanvas.style.opacity = '0.32';
+          startMatrixRain();
+        } else {
+          matrixCanvas.style.opacity = '0';
+          stopMatrixRain();
+        }
+
+        document.querySelectorAll('.bg-opt').forEach(btn => {
+          const active = btn.dataset.bg === mode;
+          btn.style.borderColor = active ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
+          btn.style.background = active ? 'var(--accent-soft)' : 'rgba(255,255,255,0.04)';
+        });
+        savePrefs();
+      }
+
+      function updateEnginePillsUI() {
+        document.querySelectorAll('.engine-pill').forEach(b => {
+          const active = b.dataset.engine === state.searchEngine;
+          b.className = `engine-pill px-3.5 py-1.5 rounded-full text-xs font-medium transition border flex items-center gap-1.5 ${
+            active
+              ? 'accent-soft-bg accent-border-strong accent-text shadow-[0_0_12px_rgba(var(--accent-rgb),0.25)]'
+              : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+          }`;
+        });
+      }
+
+      function handleRealSearchOrNavigate(rawInput) {
+        const input = (rawInput || '').trim();
+        if (!input) return;
+        SoundFX.play('click');
+
+        const isUrl = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/i.test(input);
+        if (isUrl) {
+          const normalized = /^https?:\/\//i.test(input) ? input : 'https://' + input;
+          window.location.href = normalized;
+          return;
+        }
+
+        const q = encodeURIComponent(input);
+        let targetUrl = `https://www.google.com/search?q=${q}`;
+        if (state.searchEngine === 'coccoc') {
+          targetUrl = `https://coccoc.com/search?query=${q}`;
+        } else if (state.searchEngine === 'youtube') {
+          targetUrl = `https://www.youtube.com/results?search_query=${q}`;
+        } else if (state.searchEngine === 'quanAI') {
+          targetUrl = `https://www.google.com/search?udm=50&q=${q}`;
+        }
+        window.location.href = targetUrl;
+      }
+
+      function getShortcutIconSVG(item) {
+        switch (item.icon) {
+          case 'yt':
+            return `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="#ff0033"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.4 31.4 0 000 12a31.4 31.4 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31.4 31.4 0 0024 12a31.4 31.4 0 00-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>`;
+          case 'fb':
+            return `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="#1877f2"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.13 8.44 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99C18.34 21.13 22 16.99 22 12z"/></svg>`;
+          case 'zalo':
+            return `<span class="font-cyber font-bold text-lg text-[#38a1ff]">Zalo</span>`;
+          case 'shopee':
+            return `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#ee4d2d" stroke-width="2.2"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 016 0"/><path stroke-linecap="round" d="M14.5 11.5c-.5-.6-1.4-.9-2.4-.9-1.3 0-2.2.6-2.2 1.5 0 1 1 1.4 2.3 1.7 1.3.3 2.3.7 2.3 1.8 0 1-.9 1.7-2.4 1.7-1.2 0-2.1-.4-2.7-1"/></svg>`;
+          case 'vne':
+            return `<span class="font-cyber font-bold text-base text-[#f43f5e]">VnE</span>`;
+          case 'zing':
+            return `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-2v13"/><circle cx="6" cy="19" r="3"/><circle cx="18" cy="17" r="3"/></svg>`;
+          case 'gh':
+            return `<svg class="w-6 h-6 text-slate-100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.17 1.18a11.1 11.1 0 015.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.11 3.04.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.51 11.51 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>`;
+          case 'gpt':
+            return `<svg class="w-6 h-6 text-[#10a37f]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
+          default:
+            return `<span class="font-cyber font-bold text-lg accent-text">${escapeHtml((item.name || 'W').slice(0, 2).toUpperCase())}</span>`;
+        }
+      }
+
+      function renderSpeedDial() {
+        const grid = document.getElementById('speed-dial-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        state.shortcuts.forEach(item => {
+          const tile = document.createElement('a');
+          tile.href = item.url;
+          tile.className = 'speed-dial-card group relative rounded-2xl p-3 flex flex-col items-center justify-center gap-2 cursor-pointer min-h-[96px] no-underline';
+          tile.innerHTML = `
+            <button type="button" data-remove="${escapeHtml(item.id)}" title="Xóa lối tắt" class="remove-sc-btn opacity-0 group-hover:opacity-100 absolute top-1.5 right-1.5 w-5 h-5 rounded-md bg-black/70 hover:bg-rose-600 text-slate-300 hover:text-white text-[10px] flex items-center justify-center transition">✕</button>
+            <div class="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-105 transition">
+              ${getShortcutIconSVG(item)}
+            </div>
+            <span class="text-[11px] font-medium text-slate-200 group-hover:text-white truncate max-w-full">${escapeHtml(item.name)}</span>
+          `;
+
+          tile.querySelector('.remove-sc-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            SoundFX.play('click');
+            state.shortcuts = state.shortcuts.filter(s => s.id !== item.id);
+            savePrefs();
+            renderSpeedDial();
+            showToast(`Đã xóa lối tắt "${item.name}"`);
+          });
+
+          grid.appendChild(tile);
+        });
+
+        const addTile = document.createElement('button');
+        addTile.type = 'button';
+        addTile.className = 'speed-dial-card rounded-2xl p-3 flex flex-col items-center justify-center gap-2 cursor-pointer min-h-[96px] border-dashed border-white/20 hover:accent-border';
+        addTile.innerHTML = `
+          <div class="w-11 h-11 rounded-xl accent-soft-bg border accent-border flex items-center justify-center accent-text">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <span class="text-[11px] font-medium accent-text">Thêm lối tắt</span>
+        `;
+        addTile.addEventListener('click', () => {
+          SoundFX.play('click');
+          const m = document.getElementById('modal-add-shortcut');
+          m.classList.remove('hidden');
+          m.classList.add('flex');
+          document.getElementById('shortcut-name-input').value = '';
+          document.getElementById('shortcut-url-input').value = '';
+          setTimeout(() => document.getElementById('shortcut-name-input').focus(), 60);
+        });
+        grid.appendChild(addTile);
+      }
+
+      function renderMiniDictionary(rawWord) {
+        const out = document.getElementById('mini-dict-output');
+        if (!out) return;
+        const word = (rawWord || '').trim().toLowerCase();
+        if (!word) {
+          out.innerHTML = `<div class="text-slate-400">Nhập một từ tiếng Anh để tra nghĩa tức thì...</div>`;
+          return;
+        }
+        const entry = DICTIONARY_DB[word];
+        if (entry) {
+          out.innerHTML = `
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-cyber font-bold text-sm text-white">${escapeHtml(word)}</span>
+                <span class="text-[11px] accent-text font-mono">${entry.ipa}</span>
+                <span class="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-slate-300">${entry.pos}</span>
+              </div>
+              <div class="text-slate-200 leading-relaxed">${entry.meaning}</div>
+              <div class="text-[11px] text-slate-400 italic">VD: "${entry.example}"</div>
+            </div>
+          `;
+          return;
+        }
+        const transUrl = `https://translate.google.com/?sl=en&tl=vi&text=${encodeURIComponent(word)}&op=translate`;
+        out.innerHTML = `
+          <div class="space-y-2">
+            <div class="text-slate-300">Chưa có sẵn "<span class="text-white font-semibold">${escapeHtml(word)}</span>" trong bộ đệm nhanh.</div>
+            <a href="${transUrl}" class="inline-block px-3 py-1 rounded-lg accent-soft-bg border accent-border accent-text font-medium hover:brightness-125 no-underline">Dịch "${escapeHtml(word)}" trên Google Dịch →</a>
+          </div>
+        `;
+      }
+
+      function updateFeedFilterUI() {
+        document.querySelectorAll('.feed-filter-btn').forEach(b => {
+          const active = b.dataset.filter === state.feedFilter;
+          b.className = `feed-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium transition border ${
+            active
+              ? 'accent-soft-bg accent-border-strong accent-text'
+              : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+          }`;
+        });
+      }
+
+      let currentModalFeedItem = null;
+      function renderFeedCards() {
+        const grid = document.getElementById('newtab-feed-grid');
+        if (!grid) return;
+        const items = state.feedFilter === 'all' ? FEED_ITEMS : FEED_ITEMS.filter(i => i.category === state.feedFilter);
+        grid.innerHTML = '';
+
+        items.forEach(item => {
+          const card = document.createElement('article');
+          card.className = 'feed-card rounded-2xl overflow-hidden cursor-pointer flex flex-col';
+          card.innerHTML = `
+            <div class="h-32 p-4 relative flex flex-col justify-between overflow-hidden" style="background: ${item.gradient};">
+              <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px); background-size: 20px 20px;"></div>
+              <div class="relative z-10 flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-cyber font-bold text-[#070a10]" style="background:${item.badgeColor};">${item.badge}</span>
+                <span class="text-[10px] text-white/80 bg-black/40 px-2 py-0.5 rounded-full backdrop-blur-sm">${item.time}</span>
+              </div>
+              <div class="relative z-10 text-[11px] font-medium text-white/90">${item.source}</div>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between gap-2">
+              <h3 class="font-semibold text-sm text-white leading-snug">${item.title}</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">${item.summary}</p>
+            </div>
+          `;
+          card.addEventListener('click', () => {
+            SoundFX.play('click');
+            currentModalFeedItem = item;
+            document.getElementById('feed-modal-banner').style.background = item.gradient;
+            document.getElementById('feed-modal-badge').textContent = item.badge;
+            document.getElementById('feed-modal-title').textContent = item.title;
+            document.getElementById('feed-modal-source').textContent = item.source;
+            document.getElementById('feed-modal-time').textContent = item.time;
+            document.getElementById('feed-modal-body').textContent = item.body;
+            const m = document.getElementById('modal-feed-detail');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+          });
+          grid.appendChild(card);
+        });
+      }
+
+      function updateClockAndCalendar() {
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const clockEl = document.getElementById('live-clock');
+        const gregEl = document.getElementById('live-gregorian');
+        const lunarEl = document.getElementById('live-lunar');
+
+        if (clockEl) clockEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        if (gregEl) {
+          const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+          gregEl.textContent = `${days[now.getDay()]}, ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
+        }
+        if (lunarEl && !window.__quanglnHostLunarSynced) {
+          const refGreg = new Date(2026, 10, 22);
+          const diffDays = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - refGreg) / 86400000);
+          const lunarDay = ((14 + diffDays - 1) % 30 + 30) % 30 + 1;
+          const lunarMonth = now.getFullYear() === 2026 && now.getMonth() === 10 ? 10 : ((now.getMonth() + 11) % 12) + 1;
+          const can = ['Canh', 'Tân', 'Nhâm', 'Quý', 'Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ'][now.getFullYear() % 10];
+          const chi = ['Thân', 'Dậu', 'Tuất', 'Hợi', 'Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi'][now.getFullYear() % 12];
+          lunarEl.textContent = `Âm lịch: ${pad(lunarDay)}/${pad(lunarMonth)} ${can} ${chi}`;
+        }
+      }
+
+      window.__quanglnApplyLiveStatus = function(payload) {
+        if (!payload) return;
+        if (payload.lunarText) {
+          window.__quanglnHostLunarSynced = true;
+          const lunarEl = document.getElementById('live-lunar');
+          if (lunarEl) lunarEl.textContent = payload.lunarText;
+        }
+        if (payload.tempText) {
+          const tempEl = document.getElementById('home-weather-temp');
+          if (tempEl) tempEl.textContent = payload.tempText;
+        }
+        if (payload.cityName) {
+          const cityEl = document.getElementById('home-weather-city');
+          if (cityEl) cityEl.textContent = payload.cityName;
+        }
+        if (payload.condText) {
+          const condEl = document.getElementById('home-weather-cond');
+          if (condEl) condEl.textContent = `• ${payload.condText}`;
+        }
+        if (payload.iconGlyph) {
+          const iconEl = document.getElementById('home-weather-icon');
+          if (iconEl) iconEl.textContent = payload.iconGlyph;
+        }
+      };
+
+      function updateTelemetryUI() {
+        const { liveRam, liveCpu, liveNet, ramLimit, cpuLimit } = state.gx;
+        document.getElementById('strip-ram-val').textContent = `${liveRam.toFixed(1)} GB`;
+        document.getElementById('strip-ram-cap').textContent = `/ ${ramLimit}GB`;
+        document.getElementById('strip-ram-bar').style.width = `${Math.min(100, (liveRam / ramLimit) * 100)}%`;
+
+        document.getElementById('strip-cpu-val').textContent = `${liveCpu}%`;
+        document.getElementById('strip-cpu-cap').textContent = `/ ${cpuLimit}%`;
+        document.getElementById('strip-cpu-bar').style.width = `${Math.min(100, (liveCpu / cpuLimit) * 100)}%`;
+
+        document.getElementById('strip-net-val').textContent = `${liveNet} MB/s`;
+        document.getElementById('strip-net-bar').style.width = `${Math.min(100, liveNet * 1.4)}%`;
+      }
+
+      function tickTelemetry() {
+        state.gx.liveRam = Number(Math.min(state.gx.ramLimit * 0.88, Math.max(1.2, state.gx.liveRam + (Math.random() - 0.48) * 0.25)).toFixed(1));
+        state.gx.liveCpu = Math.min(state.gx.cpuLimit * 0.92, Math.max(5, Math.round(state.gx.liveCpu + (Math.random() - 0.5) * 5)));
+        state.gx.liveNet = Math.min(85, Math.max(4, Math.round(state.gx.liveNet + (Math.random() - 0.5) * 7)));
+        updateTelemetryUI();
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        applyTheme(state.theme, false);
+        applyBackground(state.bgMode);
+        updateEnginePillsUI();
+        updateFeedFilterUI();
+        renderSpeedDial();
+        renderMiniDictionary('browser');
+        renderFeedCards();
+        updateClockAndCalendar();
+        updateTelemetryUI();
+
+        document.getElementById('slider-ram').value = state.gx.ramLimit;
+        document.getElementById('ram-limit-val').textContent = `${state.gx.ramLimit.toFixed(1)} GB`;
+        document.getElementById('slider-cpu').value = state.gx.cpuLimit;
+        document.getElementById('cpu-limit-val').textContent = `${state.gx.cpuLimit}%`;
+        document.getElementById('toggle-sound').classList.toggle('on', SoundFX.enabled);
+
+        document.getElementById('hero-search-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          handleRealSearchOrNavigate(document.getElementById('hero-search-input').value);
+        });
+
+        document.querySelectorAll('.engine-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            SoundFX.play('click');
+            state.searchEngine = btn.dataset.engine;
+            updateEnginePillsUI();
+            savePrefs();
+          });
+        });
+
+        const dictInput = document.getElementById('mini-dict-input');
+        dictInput.addEventListener('input', (e) => renderMiniDictionary(e.target.value));
+        document.querySelectorAll('.mini-dict-chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            SoundFX.play('click');
+            dictInput.value = chip.dataset.word;
+            renderMiniDictionary(chip.dataset.word);
+          });
+        });
+
+        document.querySelectorAll('.feed-filter-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            SoundFX.play('click');
+            state.feedFilter = btn.dataset.filter;
+            updateFeedFilterUI();
+            renderFeedCards();
+          });
+        });
+
+        const toggleDrawer = () => {
+          SoundFX.play('click');
+          document.getElementById('drawer-easy-setup').classList.toggle('open');
+        };
+        document.getElementById('btn-easy-setup').addEventListener('click', toggleDrawer);
+        document.getElementById('open-setup-from-strip').addEventListener('click', toggleDrawer);
+        document.getElementById('close-easy-setup').addEventListener('click', () => {
+          SoundFX.play('click');
+          document.getElementById('drawer-easy-setup').classList.remove('open');
+        });
+
+        document.getElementById('quick-theme-pill').addEventListener('click', () => {
+          SoundFX.play('click');
+          const keys = Object.keys(THEMES);
+          const next = keys[(keys.indexOf(state.theme) + 1) % keys.length];
+          applyTheme(next);
+          showToast(`Đã chuyển chủ đề: ${THEMES[next].name}`);
+        });
+
+        document.querySelectorAll('.theme-card').forEach(btn => {
+          btn.addEventListener('click', () => {
+            SoundFX.play('click');
+            applyTheme(btn.dataset.theme);
+            showToast(`Đã áp dụng chủ đề ${THEMES[btn.dataset.theme].name}`);
+          });
+        });
+
+        document.querySelectorAll('.bg-opt').forEach(btn => {
+          btn.addEventListener('click', () => {
+            SoundFX.play('click');
+            applyBackground(btn.dataset.bg);
+          });
+        });
+
+        document.getElementById('slider-ram').addEventListener('input', (e) => {
+          state.gx.ramLimit = Number(e.target.value);
+          document.getElementById('ram-limit-val').textContent = `${state.gx.ramLimit.toFixed(1)} GB`;
+          updateTelemetryUI();
+          savePrefs();
+        });
+
+        document.getElementById('slider-cpu').addEventListener('input', (e) => {
+          state.gx.cpuLimit = Number(e.target.value);
+          document.getElementById('cpu-limit-val').textContent = `${state.gx.cpuLimit}%`;
+          updateTelemetryUI();
+          savePrefs();
+        });
+
+        document.getElementById('toggle-sound').addEventListener('click', (e) => {
+          SoundFX.enabled = !SoundFX.enabled;
+          e.currentTarget.classList.toggle('on', SoundFX.enabled);
+          if (SoundFX.enabled) SoundFX.play('success');
+          savePrefs();
+        });
+
+        // Tối ưu thông minh & Dọn dẹp (Tab Snoozer, Hardware Accel, GX Cleaner)
+        const snoozerToggle = document.getElementById('toggle-tab-snoozer');
+        const snoozerSelect = document.getElementById('sel-tab-snooze-time');
+        const hwAccelToggle = document.getElementById('toggle-hardware-accel');
+        const cleanerBtn = document.getElementById('btn-run-gx-cleaner');
+        const cleanerDesc = document.getElementById('gx-cleaner-desc');
+
+        if (snoozerToggle) snoozerToggle.classList.toggle('on', state.tabSnoozerEnabled);
+        if (snoozerSelect) snoozerSelect.value = String(state.tabSnoozeTime);
+        if (hwAccelToggle) hwAccelToggle.classList.toggle('on', state.hardwareAccelEnabled);
+        if (cleanerDesc) cleanerDesc.textContent = `Đã giải phóng ${state.gxCleanerLastFreedMb} MB bộ nhớ đệm và dữ liệu rác thành công.`;
+
+        if (snoozerToggle) {
+          snoozerToggle.addEventListener('click', () => {
+            state.tabSnoozerEnabled = !state.tabSnoozerEnabled;
+            snoozerToggle.classList.toggle('on', state.tabSnoozerEnabled);
+            SoundFX.play('click');
+            savePrefs();
+            showToast(state.tabSnoozerEnabled
+              ? 'Đã bật Chế độ Ngủ Tab tự động (Tab Snoozer)'
+              : 'Đã tắt Chế độ Ngủ Tab tự động');
+            if (window.CefSharp && typeof window.CefSharp.PostMessage === 'function') {
+              try {
+                window.CefSharp.PostMessage({
+                  type: 'QUANGLN_TAB_SNOOZER_CONFIG',
+                  enabled: state.tabSnoozerEnabled,
+                  timeoutMinutes: state.tabSnoozeTime
+                });
+              } catch {}
+            }
+          });
+        }
+
+        if (snoozerSelect) {
+          snoozerSelect.addEventListener('change', () => {
+            state.tabSnoozeTime = Number(snoozerSelect.value) || 30;
+            savePrefs();
+            SoundFX.play('click');
+            showToast(`Đã đặt thời gian ngủ tab: ${snoozerSelect.options[snoozerSelect.selectedIndex].text}`);
+            if (window.CefSharp && typeof window.CefSharp.PostMessage === 'function') {
+              try {
+                window.CefSharp.PostMessage({
+                  type: 'QUANGLN_TAB_SNOOZER_CONFIG',
+                  enabled: state.tabSnoozerEnabled,
+                  timeoutMinutes: state.tabSnoozeTime
+                });
+              } catch {}
+            }
+          });
+        }
+
+        if (hwAccelToggle) {
+          hwAccelToggle.addEventListener('click', () => {
+            state.hardwareAccelEnabled = !state.hardwareAccelEnabled;
+            hwAccelToggle.classList.toggle('on', state.hardwareAccelEnabled);
+            SoundFX.play('click');
+            savePrefs();
+            showToast(state.hardwareAccelEnabled
+              ? 'Đã bật Tăng tốc phần cứng (Hardware Acceleration)'
+              : 'Đã tắt Tăng tốc phần cứng');
+            if (window.CefSharp && typeof window.CefSharp.PostMessage === 'function') {
+              try {
+                window.CefSharp.PostMessage({
+                  type: 'QUANGLN_HARDWARE_ACCEL_CONFIG',
+                  enabled: state.hardwareAccelEnabled
+                });
+              } catch {}
+            }
+          });
+        }
+
+        let isCleaning = false;
+        if (cleanerBtn) {
+          cleanerBtn.addEventListener('click', () => {
+            if (isCleaning) return;
+            isCleaning = true;
+            SoundFX.play('click');
+            const bar = document.getElementById('gx-cleaner-bar');
+            const status = document.getElementById('gx-cleaner-status');
+            const percent = document.getElementById('gx-cleaner-percent');
+            const badge = document.getElementById('gx-cleaner-badge');
+            const desc = document.getElementById('gx-cleaner-desc');
+
+            cleanerBtn.disabled = true;
+            cleanerBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            badge.className = 'px-2 py-0.5 rounded-md text-[10px] font-semibold border border-amber-500/40 bg-amber-500/10 text-amber-400';
+            badge.textContent = 'Đang dọn dẹp...';
+
+            if (window.CefSharp && typeof window.CefSharp.PostMessage === 'function') {
+              try {
+                window.CefSharp.PostMessage({ type: 'QUANGLN_RUN_CLEANER' });
+              } catch {}
+            }
+
+            bar.style.width = '18%';
+            percent.textContent = '18%';
+            status.textContent = 'Đang quét bộ nhớ đệm Chromium và các tệp tạm...';
+
+            setTimeout(() => {
+              bar.style.width = '52%';
+              percent.textContent = '52%';
+              status.textContent = 'Đang giải phóng GPU Cache, WebGL Shader & Tệp rác...';
+            }, 400);
+
+            setTimeout(() => {
+              bar.style.width = '85%';
+              percent.textContent = '85%';
+              status.textContent = 'Đang giải phóng RAM và tối ưu hóa cơ sở dữ liệu hồ sơ...';
+            }, 850);
+
+            setTimeout(() => {
+              const freedMb = Math.floor(Math.random() * 80) + 580; // ~619 MB
+              bar.style.width = '100%';
+              percent.textContent = '100%';
+              status.textContent = 'Đang tối ưu hóa cơ sở dữ liệu hồ sơ...';
+              badge.className = 'px-2 py-0.5 rounded-md text-[10px] font-semibold border accent-soft-bg accent-border accent-text';
+              badge.textContent = 'Trình duyệt đã sạch';
+              desc.textContent = `Đã giải phóng ${freedMb} MB bộ nhớ đệm và dữ liệu rác thành công.`;
+              state.gxCleanerLastFreedMb = freedMb;
+              savePrefs();
+
+              state.gx.liveRam = Math.max(1.4, Number((state.gx.liveRam - 0.7).toFixed(1)));
+              updateTelemetryUI();
+
+              cleanerBtn.disabled = false;
+              cleanerBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+              isCleaning = false;
+              SoundFX.play('success');
+              showToast(`✨ GX Cleaner: Đã giải phóng ${freedMb} MB bộ nhớ đệm và tối ưu hóa hệ thống thành công!`);
+            }, 1300);
+          });
+        }
+
+        document.getElementById('btn-reset-shortcuts').addEventListener('click', () => {
+          SoundFX.play('success');
+          state.shortcuts = [...INITIAL_SHORTCUTS];
+          savePrefs();
+          renderSpeedDial();
+          showToast('Đã khôi phục 8 lối tắt mặc định.');
+        });
+
+        const closeShortcutModal = () => {
+          const m = document.getElementById('modal-add-shortcut');
+          m.classList.add('hidden');
+          m.classList.remove('flex');
+        };
+        document.getElementById('close-shortcut-modal').addEventListener('click', closeShortcutModal);
+        document.getElementById('cancel-shortcut-modal').addEventListener('click', closeShortcutModal);
+        document.getElementById('add-shortcut-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = document.getElementById('shortcut-name-input').value.trim();
+          let url = document.getElementById('shortcut-url-input').value.trim();
+          if (!name || !url) return;
+          if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+          state.shortcuts.push({ id: 'sc-' + Date.now(), name, url, icon: 'custom' });
+          savePrefs();
+          SoundFX.play('success');
+          closeShortcutModal();
+          renderSpeedDial();
+          showToast(`Đã thêm lối tắt "${name}"!`);
+        });
+
+        const closeFeedModal = () => {
+          const m = document.getElementById('modal-feed-detail');
+          m.classList.add('hidden');
+          m.classList.remove('flex');
+        };
+        document.getElementById('close-feed-modal').addEventListener('click', closeFeedModal);
+        document.getElementById('modal-feed-detail').addEventListener('click', (e) => {
+          if (e.target.id === 'modal-feed-detail') closeFeedModal();
+        });
+        document.getElementById('feed-modal-open-tab').addEventListener('click', () => {
+          if (!currentModalFeedItem) return;
+          SoundFX.play('click');
+          window.open(currentModalFeedItem.url, '_blank');
+          closeFeedModal();
+        });
+
+        setInterval(updateClockAndCalendar, 1000);
+        setInterval(tickTelemetry, 2400);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1907 @@
+<UserControl x:Class="QUANGLNBrowser.App.Views.SettingsPageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             Background="{DynamicResource BrowserSurfaceBrush}"
+             Foreground="#F3F4F6">
+
+    <UserControl.Resources>
+        <Style x:Key="SettingsCategoryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Margin" Value="8,2" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="#1EFFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SettingsCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource BrowserElevatedBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BrowserBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="18,16" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+
+        <Style x:Key="SettingsSectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#F9FAFB" />
+            <Setter Property="Margin" Value="2,6,0,12" />
+        </Style>
+
+        <Style x:Key="SettingsRowTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#F3F4F6" />
+        </Style>
+
+        <Style x:Key="SettingsRowSubtitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Foreground" Value="#9CA3AF" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,3,0,0" />
+        </Style>
+
+        <Style x:Key="SettingsDividerStyle" TargetType="Border">
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource BrowserBorderBrush}" />
+            <Setter Property="Margin" Value="0,12" />
+        </Style>
+
+        <Style x:Key="SettingsChoicePillStyle" TargetType="ui:Button">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Appearance" Value="Secondary" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- TOP HEADER BAR (Kiểu Cốc Cốc Settings: Logo + Thanh tìm kiếm cài đặt ở giữa + Nút chủ đề & Đặt lại) -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource BrowserChromeBrush}"
+                BorderBrush="{DynamicResource ThemeNeonDividerBrush}"
+                BorderThickness="0,0,0,1.5"
+                Padding="18,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="240" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Logo + Tiêu đề Cài đặt -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Source="pack://application:,,,/Assets/logo.png"
+                           Width="34"
+                           Height="34"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           Margin="0,0,10,0"
+                           VerticalAlignment="Center" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Cài đặt" FontSize="16" FontWeight="Bold" Foreground="#F9FAFB" />
+                        <TextBlock Text="QUANGLN Browser · Bảo mật &amp; Hiệu năng" FontSize="10.5" Foreground="#9CA3AF" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Thanh tìm kiếm cài đặt ở giữa (kiểu Cốc Cốc / Chrome) -->
+                <Grid Grid.Column="1" MaxWidth="520" VerticalAlignment="Center" Margin="12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBox Grid.Column="0"
+                                PlaceholderText="Tìm kiếm trong cài đặt (VD: VPN, quảng cáo, tìm kiếm, màu, dịch, tải về)..."
+                                Text="{Binding SettingsSearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                Icon="{ui:SymbolIcon Search20}"
+                                Height="36"
+                                FontSize="12.5" />
+                    <ui:Button Grid.Column="1"
+                               Width="34" Height="34" Padding="0" Margin="6,0,0,0"
+                               Appearance="Secondary"
+                               ToolTip="Xóa tìm kiếm"
+                               Visibility="{Binding IsSettingsSearching, Converter={StaticResource BoolToVis}}"
+                               Command="{Binding ClearSettingsSearchCommand}">
+                        <ui:SymbolIcon Symbol="Dismiss16" FontSize="13" />
+                    </ui:Button>
+                </Grid>
+
+                <!-- Góc phải: Nhãn chủ đề hiện tại + nút Đặt lại -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border CornerRadius="14" Padding="10,5" Margin="0,0,8,0"
+                            Background="{DynamicResource ThemeAccentSoftBrush}"
+                            BorderBrush="{DynamicResource ThemeAccentBorderBrush}"
+                            BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="{DynamicResource ThemeAccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding SelectedThemeDisplayName}" FontSize="11.5" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ui:Button Content="Đặt lại mặc định"
+                               Appearance="Secondary"
+                               Height="32" Padding="12,0" FontSize="12"
+                               Command="{Binding ResetBrowserSettingsCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- BODY: LEFT CATEGORY RAIL + MAIN CONTENT -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="252" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Cột trái: Danh mục Cài đặt kiểu Cốc Cốc -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource BrowserChromeBrush}"
+                    BorderBrush="{DynamicResource BrowserBorderBrush}"
+                    BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,12,0,18">
+                    <StackPanel>
+                        <TextBlock Text="DANH MỤC CÀI ĐẶT" FontSize="10.5" FontWeight="Bold"
+                                   Foreground="#6B7280" Margin="20,4,12,8" />
+
+                        <!-- 1. Chung & Hồ sơ Vault -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="General">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="General">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="PersonCircle20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Chung &amp; Hồ sơ Vault" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 2. Giao diện -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="Appearance">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="Appearance">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Sparkle20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Giao diện &amp; Chủ đề màu" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 3. Công cụ tìm kiếm -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="SearchEngine">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="SearchEngine">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Search20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Công cụ tìm kiếm" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 4. Khi khởi động -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="Startup">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="Startup">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Power20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Khi khởi động" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <Border Height="1" Background="{DynamicResource BrowserBorderBrush}" Margin="16,10" />
+                        <TextBlock Text="BẢO MẬT &amp; TIỆN ÍCH CỐC CỐC" FontSize="10.5" FontWeight="Bold"
+                                   Foreground="#6B7280" Margin="20,2,12,8" />
+
+                        <!-- 5. VPN & Mạng -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="VpnNetwork">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="VpnNetwork">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="GlobeShield20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="VPN &amp; Mạng (WARP)" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 6. Chặn quảng cáo -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="AdBlock">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="AdBlock">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="ShieldCheckmark24" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Chặn quảng cáo" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 7. Quyền riêng tư & Bảo mật -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="Privacy">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="Privacy">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="LockClosed24" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Quyền riêng tư &amp; Dữ liệu" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 8. Ngôn ngữ & Dịch trang -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="Language">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="Language">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="LocalLanguage20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Ngôn ngữ &amp; Dịch trang" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 9. Tệp đã tải về & Media -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="Downloads">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="Downloads">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="ArrowDownload20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Tệp đã tải về &amp; Media" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 10. Thanh bên (Sidebar) -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="Sidebar">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="Sidebar">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="PanelLeft20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Thanh bên (Sidebar)" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <Border Height="1" Background="{DynamicResource BrowserBorderBrush}" Margin="16,10" />
+
+                        <!-- 10. Trình duyệt mặc định & Giới thiệu -->
+                        <Button Command="{Binding SelectSettingsSectionCommand}" CommandParameter="DefaultAbout">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource SettingsCategoryButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveSettingsSection}" Value="DefaultAbout">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeAccentSoftBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="QuestionCircle20" FontSize="17" Margin="0,0,12,0" />
+                                <TextBlock Text="Trình duyệt mặc định &amp; Giới thiệu" FontSize="13" FontWeight="Medium" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Cột phải: Nội dung cài đặt chi tiết (căn giữa rộng rãi kiểu Cốc Cốc) -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Background="{DynamicResource BrowserSurfaceBrush}">
+                <StackPanel MaxWidth="820" Margin="32,20,32,48">
+
+                    <!-- Thông báo trạng thái lưu cài đặt -->
+                    <Border Padding="12,9" CornerRadius="9" Margin="0,0,0,14"
+                            Background="{DynamicResource ThemeAccentSoftBrush}"
+                            BorderBrush="{DynamicResource ThemeAccentBorderBrush}"
+                            BorderThickness="1">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SettingsStatusBanner}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding SettingsStatusBanner}" FontSize="12.5" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource ThemeAccentBrush}" TextWrapping="Wrap" />
+                    </Border>
+
+                    <!-- Thanh kết quả khi đang tìm kiếm cài đặt -->
+                    <Border Padding="14,10" CornerRadius="10" Margin="0,0,0,16"
+                            Background="{DynamicResource BrowserElevatedBrush}"
+                            BorderBrush="{DynamicResource BrowserBorderBrush}"
+                            BorderThickness="1"
+                            Visibility="{Binding IsSettingsSearching, Converter={StaticResource BoolToVis}}">
+                        <DockPanel>
+                            <ui:Button DockPanel.Dock="Right" Content="Xóa tìm kiếm" Height="28" Padding="10,0"
+                                       FontSize="11.5" Appearance="Secondary"
+                                       Command="{Binding ClearSettingsSearchCommand}" />
+                            <TextBlock Text="{Binding SettingsSearchSummary}" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="#E5E7EB" VerticalAlignment="Center" />
+                        </DockPanel>
+                    </Border>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 1: CHUNG & HỒ SƠ VAULT                                         -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionGeneral, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Chung &amp; Hồ sơ QUANGLN Vault" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ui:Button Content="Khóa Vault ngay (Ctrl+Shift+L)"
+                                                   Appearance="Secondary"
+                                                   Height="34" Padding="12,0" FontSize="12"
+                                                   Command="{Binding PanicLockCommand}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="44" Height="44" CornerRadius="22"
+                                                Background="{DynamicResource ThemeAccentSoftBrush}"
+                                                BorderBrush="{DynamicResource ThemeAccentBorderBrush}"
+                                                BorderThickness="1" Margin="0,0,14,0">
+                                            <ui:SymbolIcon Symbol="PersonCircle20" FontSize="24"
+                                                           Foreground="{DynamicResource ThemeAccentBrush}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ActiveProfileLabel}" FontSize="15" FontWeight="Bold" Foreground="#F9FAFB" />
+                                            <TextBlock Text="Hồ sơ bảo vệ bằng SQLCipher AES-256 · Khóa dẫn xuất Argon2id · Hỗ trợ Decoy PIN"
+                                                       Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <TextBlock Text="Tự động khóa Vault khi nhàn rỗi" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="{Binding AutoLockMinutes, StringFormat=Trình duyệt tự động khóa màn hình sau {0} phút không thao tác bàn phím/chuột.}"
+                                           Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,10" />
+
+                                <WrapPanel>
+                                    <ui:Button Content="1 phút" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetAutoLockMinutesCommand}" CommandParameter="1" />
+                                    <ui:Button Content="3 phút" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetAutoLockMinutesCommand}" CommandParameter="3" />
+                                    <ui:Button Content="5 phút (Mặc định)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetAutoLockMinutesCommand}" CommandParameter="5" />
+                                    <ui:Button Content="15 phút" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetAutoLockMinutesCommand}" CommandParameter="15" />
+                                    <ui:Button Content="30 phút" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetAutoLockMinutesCommand}" CommandParameter="30" />
+                                    <ui:Button Content="60 phút" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetAutoLockMinutesCommand}" CommandParameter="60" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Đổi tên hồ sơ & Đổi PIN / Master Password -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Thông tin hồ sơ &amp; Đổi mã PIN / Master Password" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="Thay đổi tên hiển thị hồ sơ hoặc cập nhật mã PIN/mật khẩu mới (SQLCipher sẽ mã hóa lại toàn bộ vault.db)."
+                                           Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,12" />
+
+                                <!-- Đổi tên hồ sơ -->
+                                <TextBlock Text="Tên hiển thị hồ sơ" FontSize="12" FontWeight="SemiBold" Foreground="#D1D5DB" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0"
+                                                PlaceholderText="Nhập tên hồ sơ (VD: Hồ sơ công việc)..."
+                                                Text="{Binding ProfileNameInput, UpdateSourceTrigger=PropertyChanged}"
+                                                FontSize="12.5" />
+                                    <ui:Button Grid.Column="2" Content="Lưu tên hồ sơ" Appearance="Secondary"
+                                               Height="34" Padding="14,0" FontSize="12"
+                                               Command="{Binding UpdateProfileNameCommand}" />
+                                </Grid>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Đổi PIN / Master Password -->
+                                <TextBlock Text="Đổi mã PIN / Master Password" FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F6" Margin="0,0,0,8" />
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:PasswordBox x:Name="CurrentPinBox" Grid.Column="0" PlaceholderText="PIN / Mật khẩu hiện tại..." />
+                                    <ui:PasswordBox x:Name="NewPinBox" Grid.Column="2" PlaceholderText="PIN / Mật khẩu mới (≥ 4 ký tự)..." />
+                                    <ui:PasswordBox x:Name="ConfirmNewPinBox" Grid.Column="4" PlaceholderText="Nhập lại PIN / Mật khẩu mới..." />
+                                </Grid>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:Button Content="Cập nhật PIN / Master Password"
+                                               Appearance="Primary" Height="34" Padding="14,0" FontSize="12"
+                                               Click="OnChangePinClicked" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Quản lý Decoy PIN & Windows Hello (Chỉ dành cho Hồ sơ chính) -->
+                        <Border Style="{StaticResource SettingsCardStyle}"
+                                Visibility="{Binding IsPrimaryProfileActive, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="Bảo mật nâng cao: Decoy PIN &amp; Windows Hello" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="Decoy PIN dùng để mở một hồ sơ khách trống trong tình huống khẩn cấp. Windows Hello cho phép mở khóa nhanh bằng vân tay / khuôn mặt."
+                                           Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,12" />
+
+                                <TextBlock Text="Thiết lập hoặc thay đổi Decoy PIN (Hồ sơ khách)" FontSize="12" FontWeight="SemiBold" Foreground="#D1D5DB" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="6" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:PasswordBox x:Name="NewDecoyPinBox" Grid.Column="0" PlaceholderText="Nhập Decoy PIN mới (≥ 4 ký tự, khác PIN chính)..." />
+                                    <ui:Button Grid.Column="2" Content="Lưu Decoy PIN" Appearance="Secondary"
+                                               Height="34" Padding="14,0" FontSize="12"
+                                               Click="OnSaveDecoyPinClicked" />
+                                    <ui:Button Grid.Column="4" Content="Gỡ Decoy PIN" Appearance="Secondary"
+                                               Height="34" Padding="12,0" FontSize="12"
+                                               Visibility="{Binding HasDecoyProfile, Converter={StaticResource BoolToVis}}"
+                                               Command="{Binding RemoveDecoyPinCommand}" />
+                                </Grid>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <DockPanel>
+                                    <ui:Button DockPanel.Dock="Right"
+                                               Height="34" Padding="14,0" FontSize="12"
+                                               IsEnabled="{Binding IsWindowsHelloAvailable}"
+                                               Command="{Binding ToggleVaultWindowsHelloCommand}">
+                                        <ui:Button.Style>
+                                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                                <Setter Property="Content" Value="Bật Windows Hello" />
+                                                <Setter Property="Appearance" Value="Primary" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsVaultWindowsHelloEnabled}" Value="True">
+                                                        <Setter Property="Content" Value="Tắt Windows Hello" />
+                                                        <Setter Property="Appearance" Value="Secondary" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:Button.Style>
+                                    </ui:Button>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Mở khóa nhanh bằng Windows Hello (DPAPI)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Bảo vệ khóa giải mã bằng Windows Hello trên thiết bị này." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 2: GIAO DIỆN & CHỦ ĐỀ MÀU                                      -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionAppearance, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Giao diện &amp; Chủ đề màu Neon" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,10">
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedThemeDisplayName}"
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                    <StackPanel>
+                                        <TextBlock Text="Chủ đề màu toàn giao diện" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Áp dụng đồng bộ cho thanh tiêu đề, thẻ tab, thanh bên, menu chuột phải, trang Cài đặt và Trang chủ."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <UniformGrid Columns="2" Margin="0,4,0,4">
+                                    <Button Margin="0,0,8,8" Padding="14,12" Cursor="Hand"
+                                            Background="{DynamicResource BrowserChromeBrush}"
+                                            BorderThickness="1.5"
+                                            Command="{Binding SelectThemeCommand}" CommandParameter="coccoc">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BrowserBorderBrush}" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedThemeKey}" Value="coccoc">
+                                                        <Setter Property="BorderBrush" Value="#00E676" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="28" Height="28" CornerRadius="14" Background="#00E676" Margin="0,0,12,0" />
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Cốc Cốc Neon" FontSize="13.5" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                                                <TextBlock Text="#00E676 · Xanh lá đặc trưng" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Margin="0,0,0,8" Padding="14,12" Cursor="Hand"
+                                            Background="{DynamicResource BrowserChromeBrush}"
+                                            BorderThickness="1.5"
+                                            Command="{Binding SelectThemeCommand}" CommandParameter="crimson">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BrowserBorderBrush}" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedThemeKey}" Value="crimson">
+                                                        <Setter Property="BorderBrush" Value="#FA1E4E" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="28" Height="28" CornerRadius="14" Background="#FA1E4E" Margin="0,0,12,0" />
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="GX Crimson" FontSize="13.5" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                                                <TextBlock Text="#FA1E4E · Đỏ Gaming rực lửa" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Margin="0,0,8,0" Padding="14,12" Cursor="Hand"
+                                            Background="{DynamicResource BrowserChromeBrush}"
+                                            BorderThickness="1.5"
+                                            Command="{Binding SelectThemeCommand}" CommandParameter="cyan">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BrowserBorderBrush}" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedThemeKey}" Value="cyan">
+                                                        <Setter Property="BorderBrush" Value="#00E5FF" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="28" Height="28" CornerRadius="14" Background="#00E5FF" Margin="0,0,12,0" />
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Cyber Cyan" FontSize="13.5" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                                                <TextBlock Text="#00E5FF · Xanh công nghệ" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Margin="0" Padding="14,12" Cursor="Hand"
+                                            Background="{DynamicResource BrowserChromeBrush}"
+                                            BorderThickness="1.5"
+                                            Command="{Binding SelectThemeCommand}" CommandParameter="purple">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BrowserBorderBrush}" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedThemeKey}" Value="purple">
+                                                        <Setter Property="BorderBrush" Value="#B517FF" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Width="28" Height="28" CornerRadius="14" Background="#B517FF" Margin="0,0,12,0" />
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Quantum Purple" FontSize="13.5" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                                                <TextBlock Text="#B517FF · Tím Cyberpunk" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+                                </UniformGrid>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <DockPanel Margin="0,2">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsLeftSidebarVisible}" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Hiển thị thanh bên trái (Sidebar)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Truy cập nhanh Trang chủ, Dấu trang, Lịch sử, Tải xuống, Hỏi AI và Khóa Vault."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <DockPanel Margin="0,2">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding ShowHomeButton}" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Hiển thị nút Trang chủ trên thanh địa chỉ" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Giống Cốc Cốc: bấm nhanh biểu tượng ngôi nhà để quay về trang chủ QUANGLN."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <TextBlock Text="Thu phóng trang mặc định" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="{Binding DefaultZoomPercent, StringFormat=Mức thu phóng đang chọn: {0}%}"
+                                           Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,10" />
+                                <WrapPanel>
+                                    <ui:Button Content="75%" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetDefaultZoomCommand}" CommandParameter="75" />
+                                    <ui:Button Content="90%" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetDefaultZoomCommand}" CommandParameter="90" />
+                                    <ui:Button Content="100% (Chuẩn)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetDefaultZoomCommand}" CommandParameter="100" />
+                                    <ui:Button Content="110%" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetDefaultZoomCommand}" CommandParameter="110" />
+                                    <ui:Button Content="125%" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetDefaultZoomCommand}" CommandParameter="125" />
+                                    <ui:Button Content="150%" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SetDefaultZoomCommand}" CommandParameter="150" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 3: CÔNG CỤ TÌM KIẾM                                            -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionSearchEngine, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Công cụ tìm kiếm trên thanh địa chỉ" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,12">
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding DefaultSearchEngineDisplayName}"
+                                               FontSize="12.5" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                    <StackPanel>
+                                        <TextBlock Text="Công cụ tìm kiếm mặc định" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Khi bạn gõ từ khóa vào thanh địa chỉ Omnibox, QUANGLN Browser sẽ tìm bằng công cụ này."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <UniformGrid Columns="2">
+                                    <ui:Button Margin="0,0,8,8" Height="46" HorizontalAlignment="Stretch" Appearance="Secondary"
+                                               Command="{Binding SelectSearchEngineCommand}" CommandParameter="google">
+                                        <StackPanel>
+                                            <TextBlock Text="Google" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center" />
+                                            <TextBlock Text="google.com/search" FontSize="10.5" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </ui:Button>
+                                    <ui:Button Margin="0,0,0,8" Height="46" HorizontalAlignment="Stretch" Appearance="Secondary"
+                                               Command="{Binding SelectSearchEngineCommand}" CommandParameter="coccoc">
+                                        <StackPanel>
+                                            <TextBlock Text="Cốc Cốc Search" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center" />
+                                            <TextBlock Text="coccoc.com/search" FontSize="10.5" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </ui:Button>
+                                    <ui:Button Margin="0,0,8,0" Height="46" HorizontalAlignment="Stretch" Appearance="Secondary"
+                                               Command="{Binding SelectSearchEngineCommand}" CommandParameter="bing">
+                                        <StackPanel>
+                                            <TextBlock Text="Microsoft Bing" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center" />
+                                            <TextBlock Text="bing.com/search" FontSize="10.5" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </ui:Button>
+                                    <ui:Button Margin="0" Height="46" HorizontalAlignment="Stretch" Appearance="Secondary"
+                                               Command="{Binding SelectSearchEngineCommand}" CommandParameter="duckduckgo">
+                                        <StackPanel>
+                                            <TextBlock Text="DuckDuckGo" FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Center" />
+                                            <TextBlock Text="Tìm kiếm ẩn danh không theo dõi" FontSize="10.5" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </ui:Button>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 4: KHI KHỞI ĐỘNG                                               -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionStartup, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Khi khởi động trình duyệt" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Chọn trang hiển thị đầu tiên ngay sau khi mở khóa Vault" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="Thiết lập này được mã hóa riêng theo từng hồ sơ người dùng." Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,12" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <ui:Button Content="Mở Trang chủ QUANGLN (Mặc định)"
+                                               Height="34" Padding="14,0" Margin="0,0,8,0"
+                                               Appearance="Secondary"
+                                               Command="{Binding SelectStartupModeCommand}" CommandParameter="homepage" />
+                                    <ui:Button Content="Mở trang web cụ thể"
+                                               Height="34" Padding="14,0"
+                                               Appearance="Secondary"
+                                               Command="{Binding SelectStartupModeCommand}" CommandParameter="custom" />
+                                </StackPanel>
+
+                                <Border Padding="12" CornerRadius="8" Background="{DynamicResource BrowserChromeBrush}"
+                                        BorderBrush="{DynamicResource BrowserBorderBrush}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="Địa chỉ trang khởi động tùy chỉnh" FontSize="12" FontWeight="SemiBold" Foreground="#E5E7EB" Margin="0,0,0,6" />
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="8" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <ui:TextBox Grid.Column="0"
+                                                        PlaceholderText="https://www.google.com"
+                                                        Text="{Binding StartupCustomUrl, UpdateSourceTrigger=PropertyChanged}"
+                                                        FontSize="12.5" />
+                                            <ui:Button Grid.Column="2" Content="Lưu &amp; Áp dụng"
+                                                       Appearance="Primary" Height="34" Padding="14,0" FontSize="12"
+                                                       Command="{Binding SaveStartupCustomUrlCommand}" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 5: VPN & MẠNG (OPERA VPN + 1.1.1.1 WARP + SING-BOX)            -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionVpnNetwork, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="VPN &amp; Bảo mật mạng (Opera Style + 1.1.1.1 WARP)" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <!-- Trạng thái VPN & Nút hành động nhanh -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,10">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <ui:Button Content="Bật / Tắt VPN" Appearance="Primary" Height="32" Padding="12,0" Margin="0,0,6,0" FontSize="12"
+                                                   Command="{Binding ToggleGlobalVpnCommand}" />
+                                        <ui:Button Content="Cấp khóa WARP" Appearance="Secondary" Height="32" Padding="10,0" Margin="0,0,6,0" FontSize="12"
+                                                   Command="{Binding ProvisionCloudflareWarpCommand}" />
+                                        <ui:Button Content="Gỡ Kill Switch" Appearance="Secondary" Height="32" Padding="10,0" FontSize="12"
+                                                   Command="{Binding ResetKillSwitchCommand}" />
+                                    </StackPanel>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding VpnStatusMessage}" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="{Binding VpnEncryptionSummary}" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <TextBlock Text="Vị trí máy chủ ảo (Virtual Location)" Style="{StaticResource SettingsRowTitleStyle}" Margin="0,0,0,8" />
+                                <WrapPanel Margin="0,0,0,4">
+                                    <ui:Button Content="🌐 Tối ưu (WARP)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Optimal" />
+                                    <ui:Button Content="🌏 Châu Á" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Asia" />
+                                    <ui:Button Content="🌍 Châu Âu" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Europe" />
+                                    <ui:Button Content="🌎 Châu Mỹ" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Americas" />
+                                </WrapPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <DockPanel Margin="0,4">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding BypassSearchEngines}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Bỏ qua VPN cho công cụ tìm kiếm mặc định" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Giữ kết quả tìm kiếm địa phương chính xác và tránh CAPTCHA trên Google/Bing/Cốc Cốc." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <DockPanel Margin="0,10,0,4">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AutoVpnInIncognito}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Tự động kích hoạt 1.1.1.1 WARP ở Cửa sổ Ẩn danh" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Bảo vệ IP ngay khi mở cửa sổ ẩn danh mới." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <DockPanel Margin="0,10,0,4">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsKillSwitchEnabled}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Kill Switch chống rò rỉ IP (127.0.0.1:1)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Tự động ngắt lưu lượng ngay nếu sing-box.exe dừng đột ngột." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <DockPanel Margin="0,10,0,4">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsSplitTunnelingEnabled}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Split Tunneling (Bỏ qua mạng nội bộ &amp; .vn)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Giữ tốc độ gốc cho ngân hàng và trang nội địa Việt Nam." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <DockPanel Margin="0,10,0,0">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsDoubleVpnEnabled}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Double VPN 2 tầng (Multi-hop)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Định tuyến qua 2 lớp mã hóa khi dùng máy chủ VLESS / Shadowsocks." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Danh sách tên miền Bỏ qua VPN (Per-Site Bypass) -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Danh sách tên miền Bỏ qua VPN (Per-Site Bypass)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="Các trang này luôn đi trực tiếp, không qua đường hầm VPN." Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,10" />
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0" PlaceholderText="VD: vietcombank.com.vn"
+                                                Text="{Binding NewVpnBypassDomainInput, UpdateSourceTrigger=PropertyChanged}" FontSize="12.5" />
+                                    <ui:Button Grid.Column="2" Content="+ Thêm tên miền" Appearance="Secondary" Height="34" Padding="12,0" FontSize="12"
+                                               Command="{Binding AddVpnBypassDomainCommand}" />
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding VpnBypassDomains}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,5" Padding="10,6" CornerRadius="7" Background="{DynamicResource BrowserChromeBrush}">
+                                                <DockPanel>
+                                                    <ui:Button DockPanel.Dock="Right" Width="24" Height="24" Padding="0" Appearance="Transparent"
+                                                               Command="{Binding DataContext.RemoveVpnBypassDomainCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                               CommandParameter="{Binding}">
+                                                        <ui:SymbolIcon Symbol="Dismiss16" FontSize="12" Foreground="#9CA3AF" />
+                                                    </ui:Button>
+                                                    <TextBlock Text="{Binding}" FontSize="12" Foreground="#E5E7EB" VerticalAlignment="Center" />
+                                                </DockPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Thêm VPN Node & Subscription & Danh sách Node -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Quản lý máy chủ VPN Node &amp; Subscription (sing-box)" Style="{StaticResource SettingsRowTitleStyle}" Margin="0,0,0,8" />
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="90" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0" PlaceholderText="Tên Node (tùy chọn)..."
+                                                Text="{Binding NewVpnNodeName, UpdateSourceTrigger=PropertyChanged}" FontSize="12" />
+                                    <ui:TextBox Grid.Column="2" PlaceholderText="Quốc gia"
+                                                Text="{Binding NewVpnNodeCountry, UpdateSourceTrigger=PropertyChanged}" FontSize="12" />
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0" PlaceholderText="vless://, ss://, socks5://, http:// hoặc JSON..."
+                                                Text="{Binding NewVpnNodeInput, UpdateSourceTrigger=PropertyChanged}" FontSize="12" />
+                                    <ui:Button Grid.Column="2" Content="+ Lưu Node" Appearance="Primary" Height="34" Padding="14,0" FontSize="12"
+                                               Command="{Binding AddVpnNodeCommand}" />
+                                </Grid>
+
+                                <TextBlock Text="Nhập hàng loạt / Base64 Subscription" FontSize="12" FontWeight="SemiBold" Foreground="#CBD5E1" Margin="0,4,0,6" />
+                                <ui:TextBox PlaceholderText="Dán nhiều link hoặc chuỗi Base64 Subscription để tự phân vùng Châu Á / Châu Âu / Châu Mỹ..."
+                                            Text="{Binding VpnSubscriptionInput, UpdateSourceTrigger=PropertyChanged}"
+                                            AcceptsReturn="True" TextWrapping="Wrap" Height="58" VerticalContentAlignment="Top" FontSize="11.5" Margin="0,0,0,8" />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <ui:Button Content="⚡ Nhập &amp; Tự phân vùng" Appearance="Secondary" Height="30" Padding="12,0" Margin="0,0,8,0" FontSize="12"
+                                               Command="{Binding ImportVpnSubscriptionCommand}" />
+                                    <ui:Button Content="Đo Ping tất cả" Appearance="Secondary" Height="30" Padding="12,0" FontSize="12"
+                                               Command="{Binding PingAllVpnNodesCommand}" />
+                                </StackPanel>
+
+                                <ItemsControl ItemsSource="{Binding VpnNodes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,6" Padding="10,8" CornerRadius="8" Background="{DynamicResource BrowserChromeBrush}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Border Background="#2210B981" CornerRadius="4" Padding="5,1" Margin="0,0,6,0">
+                                                                <TextBlock Text="{Binding DisplayProtocol}" FontSize="10" FontWeight="Bold" Foreground="#10B981" />
+                                                            </Border>
+                                                            <Border Background="#2238BDF8" CornerRadius="4" Padding="5,1" Margin="0,0,6,0">
+                                                                <TextBlock Text="{Binding RegionLabel}" FontSize="10" Foreground="#7DD3FC" />
+                                                            </Border>
+                                                            <TextBlock Text="{Binding DisplayTitle}" FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F6" />
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding DisplayLatency}" FontSize="11" Foreground="#9CA3AF" Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                    <ui:Button Grid.Column="1" Width="28" Height="28" Padding="0" Appearance="Transparent"
+                                                               ToolTip="Xóa VPN Node"
+                                                               Command="{Binding DataContext.DeleteVpnNodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                               CommandParameter="{Binding}">
+                                                        <ui:SymbolIcon Symbol="Delete16" FontSize="13" Foreground="#F87171" />
+                                                    </ui:Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 6: CHẶN QUẢNG CÁO (CHUẨN CỐC CỐC ADBLOCK SHIELD)                -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionAdBlock, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Chặn quảng cáo (Chuẩn Cốc Cốc AdBlock Shield)" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <!-- Card 1: Công tắc chính & Thống kê trọn đời -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,12">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsAdBlockEnabled}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Bật chặn quảng cáo &amp; trình theo dõi toàn trình duyệt" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Bảo vệ duyệt web 2 tầng: chặn request mạng độc hại và tự động ẩn sạch khung quảng cáo (Cosmetic Filtering)."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <Grid Margin="0,4,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Quảng cáo đã chặn" FontSize="11.5" Foreground="#9CA3AF" />
+                                        <TextBlock Text="{Binding AdBlockTotalAdsBlocked, StringFormat={}{0:N0}}" FontSize="16" FontWeight="Bold"
+                                                   Foreground="{StaticResource AdBlockActiveBrush}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Trình theo dõi chặn" FontSize="11.5" Foreground="#9CA3AF" />
+                                        <TextBlock Text="{Binding AdBlockTotalTrackersBlocked, StringFormat={}{0:N0}}" FontSize="16" FontWeight="Bold"
+                                                   Foreground="#A78BFA" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Tổng quy tắc hoạt động" FontSize="11.5" Foreground="#9CA3AF" />
+                                        <TextBlock Text="{Binding AdBlockTotalRules, StringFormat={}{0:N0} quy tắc}" FontSize="16" FontWeight="Bold"
+                                                   Foreground="{DynamicResource ThemeAccentBrush}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3">
+                                        <TextBlock Text="Bộ máy động cơ" FontSize="11.5" Foreground="#9CA3AF" />
+                                        <TextBlock Text="{Binding AdBlockEngineName}" FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="#F3F4F6" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 2: Chế độ chặn quảng cáo kiểu Cốc Cốc -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Chế độ chặn quảng cáo" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="Chọn mức độ can thiệp chặn quảng cáo trên các trang web." Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,12" />
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Tiêu chuẩn -->
+                                    <Border Grid.Column="0" Padding="14" CornerRadius="10" BorderThickness="1"
+                                            Background="{DynamicResource BrowserChromeBrush}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BrowserBorderBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAdBlockStandardMode}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <DockPanel Margin="0,0,0,6">
+                                                <RadioButton IsChecked="{Binding IsAdBlockStandardMode}" GroupName="AdBlockModes"
+                                                             Command="{Binding SetAdBlockModeCommand}" CommandParameter="standard"
+                                                             VerticalAlignment="Center" />
+                                                <TextBlock Text="Tiêu chuẩn (Khuyên dùng)" FontSize="13.5" FontWeight="Bold" Foreground="#F3F4F6" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                            </DockPanel>
+                                            <TextBlock Text="Chặn quảng cáo phiền nhiễu, pop-up tự bật và trình theo dõi nguy hiểm mà không làm vỡ bố cục hay lỗi trang web."
+                                                       FontSize="11.5" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="16" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Nâng cao -->
+                                    <Border Grid.Column="2" Padding="14" CornerRadius="10" BorderThickness="1"
+                                            Background="{DynamicResource BrowserChromeBrush}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BrowserBorderBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAdBlockStrictMode}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <DockPanel Margin="0,0,0,6">
+                                                <RadioButton IsChecked="{Binding IsAdBlockStrictMode}" GroupName="AdBlockModes"
+                                                             Command="{Binding SetAdBlockModeCommand}" CommandParameter="strict"
+                                                             VerticalAlignment="Center" />
+                                                <TextBlock Text="Nâng cao (Nghiêm ngặt)" FontSize="13.5" FontWeight="Bold" Foreground="#F3F4F6" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                            </DockPanel>
+                                            <TextBlock Text="Chặn tuyệt đối mọi quảng cáo, video ads, banner, tracker và script bên thứ ba. Có thể ảnh hưởng nhẹ một số tính năng web."
+                                                       FontSize="11.5" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="16" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 3: Quy tắc bảo vệ chuyên sâu kiểu Cốc Cốc -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Quy tắc bảo vệ người dùng" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="Tùy chỉnh các lớp bảo vệ nội dung khi lướt web." Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,12" />
+
+                                <!-- 1. Chặn Pop-ups -->
+                                <DockPanel Margin="0,0,0,12">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockBlockPopups}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Chặn cửa sổ bật lên (Pop-ups) &amp; chuyển hướng nguy hại" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Ngăn chặn các trang web tự động mở tab quảng cáo ẩn khi bạn nhấp chuột." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- 2. Chặn quảng cáo YouTube -->
+                                <DockPanel Margin="0,0,0,12">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockBlockYouTubeAds}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Chặn quảng cáo video &amp; banner trên YouTube" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Tự động tua qua quảng cáo đầu/giữa video (Pre-roll/Mid-roll) và ẩn banner tài trợ kiểu Cốc Cốc." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- 3. Chặn trình theo dõi -->
+                                <DockPanel Margin="0,0,0,12">
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockBlockTrackers}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Chặn trình theo dõi hành vi &amp; phân tích dữ liệu (Anti-Tracking)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Ngăn Google Analytics, Facebook Pixel, Criteo và mạng quảng cáo thu thập lịch sử lướt web." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- 4. Cho phép quảng cáo chấp nhận được -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockAllowAcceptableAds}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Cho phép quảng cáo tìm kiếm chấp nhận được (Acceptable Ads)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Hiển thị quảng cáo liên kết văn bản minh bạch, không gây phiền nhiễu trên Google Tìm kiếm và Cốc Cốc." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 4: Danh sách bộ lọc tích hợp (Filter Subscriptions) -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,10">
+                                    <ui:Button DockPanel.Dock="Right" Content="Cập nhật tất cả bộ lọc ngay" Appearance="Secondary" Height="32" Padding="12,0" FontSize="12"
+                                               Command="{Binding RefreshAdBlockFiltersCommand}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Danh sách bộ lọc tích hợp (EasyList + ABPVN)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="{Binding AdBlockFilterStatus}" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <TextBlock Text="{Binding AdBlockLastUpdatedText, StringFormat='Cập nhật lần cuối: {0}'}" FontSize="11" Foreground="#9CA3AF" Margin="0,0,0,12" />
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- EasyList -->
+                                    <Border Grid.Column="0" Margin="0,0,6,6" Padding="12,10" CornerRadius="8" Background="{DynamicResource BrowserChromeBrush}">
+                                        <DockPanel>
+                                            <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockEnableEasyList}" />
+                                            <StackPanel>
+                                                <TextBlock Text="EasyList (Quốc tế)" FontWeight="SemiBold" FontSize="12.5" Foreground="#F3F4F6" />
+                                                <TextBlock Text="Bộ lọc quảng cáo phổ biến nhất thế giới" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+
+                                    <!-- ABPVN -->
+                                    <Border Grid.Column="1" Margin="6,0,0,6" Padding="12,10" CornerRadius="8" Background="{DynamicResource BrowserChromeBrush}">
+                                        <DockPanel>
+                                            <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockEnableAbpvn}" />
+                                            <StackPanel>
+                                                <TextBlock Text="ABPVN (Việt Nam)" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                                <TextBlock Text="Chuyên sâu báo chí, phim, truyện Việt Nam" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- EasyPrivacy -->
+                                    <Border Grid.Column="0" Margin="0,0,6,0" Padding="12,10" CornerRadius="8" Background="{DynamicResource BrowserChromeBrush}">
+                                        <DockPanel>
+                                            <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockEnableEasyPrivacy}" />
+                                            <StackPanel>
+                                                <TextBlock Text="EasyPrivacy (Quyền riêng tư)" FontWeight="SemiBold" FontSize="12.5" Foreground="#F3F4F6" />
+                                                <TextBlock Text="Chặn máy chủ thu thập dữ liệu cá nhân" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+
+                                    <!-- Anti-Annoyance -->
+                                    <Border Grid.Column="1" Margin="6,0,0,0" Padding="12,10" CornerRadius="8" Background="{DynamicResource BrowserChromeBrush}">
+                                        <DockPanel>
+                                            <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding AdBlockEnableAntiAnnoyance}" />
+                                            <StackPanel>
+                                                <TextBlock Text="Anti-Annoyance &amp; Cookie" FontWeight="SemiBold" FontSize="12.5" Foreground="#F3F4F6" />
+                                                <TextBlock Text="Chặn thông báo đẩy và banner cookie che web" FontSize="11" Foreground="#9CA3AF" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 5: Quy tắc tùy chỉnh & Element Picker -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,10">
+                                    <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Height="32" Padding="12,0" FontSize="12"
+                                               Command="{Binding StartElementPickerCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="Target20" FontSize="13" Margin="0,0,6,0" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                            <TextBlock Text="🎯 Chặn phần tử trên trang đang xem" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ui:Button>
+                                    <StackPanel>
+                                        <TextBlock Text="Quy tắc tùy chỉnh (Custom Rules)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Tự thêm bộ lọc theo cú pháp Adblock Plus hoặc dùng công cụ Chặn phần tử." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0" PlaceholderText="Nhập quy tắc (VD: ||bad-domain.com^ hoặc example.com##.ad-box)..."
+                                                Text="{Binding NewAdBlockCustomRuleInput, UpdateSourceTrigger=PropertyChanged}" FontSize="12.5" />
+                                    <ui:Button Grid.Column="2" Content="+ Thêm quy tắc" Appearance="Secondary" Height="34" Padding="12,0" FontSize="12"
+                                               Command="{Binding AddAdBlockCustomRuleCommand}" />
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding AdBlockCustomRules}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,5" Padding="10,6" CornerRadius="7" Background="{DynamicResource BrowserChromeBrush}">
+                                                <DockPanel>
+                                                    <ui:Button DockPanel.Dock="Right" Width="24" Height="24" Padding="0" Appearance="Transparent"
+                                                               ToolTip="Xóa quy tắc này"
+                                                               Command="{Binding DataContext.RemoveAdBlockCustomRuleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                               CommandParameter="{Binding}">
+                                                        <ui:SymbolIcon Symbol="Delete16" FontSize="12" Foreground="#F87171" />
+                                                    </ui:Button>
+                                                    <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" Foreground="#E5E7EB" VerticalAlignment="Center" />
+                                                </DockPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 6: Danh sách ngoại lệ (Whitelist) -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Danh sách ngoại lệ (Trang web cho phép hiển thị quảng cáo)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="Quảng cáo sẽ không bị chặn trên các trang web này. Lưu mã hóa trong Vault." Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,3,0,10" />
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0" PlaceholderText="Nhập tên miền (VD: vnexpress.net)..."
+                                                Text="{Binding NewAdBlockWhitelistDomainInput, UpdateSourceTrigger=PropertyChanged}" FontSize="12.5" />
+                                    <ui:Button Grid.Column="2" Content="+ Thêm ngoại lệ" Appearance="Secondary" Height="34" Padding="12,0" FontSize="12"
+                                               Command="{Binding AddAdBlockWhitelistDomainCommand}" />
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding AdBlockWhitelistDomains}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,5" Padding="10,6" CornerRadius="7" Background="{DynamicResource BrowserChromeBrush}">
+                                                <DockPanel>
+                                                    <ui:Button DockPanel.Dock="Right" Width="24" Height="24" Padding="0" Appearance="Transparent"
+                                                               ToolTip="Xóa khỏi danh sách ngoại lệ"
+                                                               Command="{Binding DataContext.RemoveAdBlockWhitelistDomainCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                               CommandParameter="{Binding}">
+                                                        <ui:SymbolIcon Symbol="Delete16" FontSize="12" Foreground="#F87171" />
+                                                    </ui:Button>
+                                                    <TextBlock Text="{Binding}" FontSize="12" Foreground="#E5E7EB" VerticalAlignment="Center" />
+                                                </DockPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 7: QUYỀN RIÊNG TƯ & DỮ LIỆU                                    -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionPrivacy, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Quyền riêng tư &amp; Xóa dữ liệu duyệt web" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <ui:Button DockPanel.Dock="Right" Content="Xóa dữ liệu ngay" Appearance="Primary"
+                                               Height="34" Padding="14,0" FontSize="12"
+                                               Command="{Binding ClearBrowsingDataCommand}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Xóa lịch sử duyệt web và Cookies" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Xóa toàn bộ lịch sử lưu trong Vault và Cookies phiên hiện tại của CefSharp." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Right" CornerRadius="6" Padding="10,5"
+                                            Background="{DynamicResource ThemeAccentSoftBrush}"
+                                            BorderBrush="{DynamicResource ThemeAccentBorderBrush}" BorderThickness="1">
+                                        <TextBlock Text="ĐANG BẬT · disable_non_proxied_udp" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource ThemeAccentBrush}" />
+                                    </Border>
+                                    <StackPanel>
+                                        <TextBlock Text="Chống rò rỉ địa chỉ IP thật qua WebRTC" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Bắt buộc tắt non-proxied UDP trong CefSharp khi kết nối VPN / 1.1.1.1 WARP." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <TextBlock Text="Duyệt web ẩn danh tức thì" Style="{StaticResource SettingsRowTitleStyle}" Margin="0,0,0,8" />
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:Button Content="Mở Cửa sổ Ẩn danh mới" Appearance="Secondary" Height="34" Padding="12,0" Margin="0,0,8,0" FontSize="12"
+                                               Command="{Binding NewIncognitoWindowCommand}" />
+                                    <ui:Button Content="Mở Ẩn danh kèm 1.1.1.1 WARP" Appearance="Secondary" Height="34" Padding="12,0" FontSize="12"
+                                               Command="{Binding NewIncognitoWarpWindowCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- CARD TỐI ƯU THÔNG MINH & DỌN DẸP (GX CLEANER & TAB SNOOZER) -->
+                        <TextBlock Text="Tối ưu thông minh &amp; Dọn dẹp" Style="{StaticResource SettingsSectionHeaderStyle}" Margin="0,16,0,0" />
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <!-- Row 1: Tab Snoozer -->
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ComboBox SelectedIndex="{Binding TabSnoozeTimeoutIndex, Mode=TwoWay}" Width="130" Height="34" Margin="0,0,10,0"
+                                                  Foreground="#F9FAFB" Background="#111827" BorderBrush="#374151">
+                                            <ComboBoxItem Content="Sau 15 phút" />
+                                            <ComboBoxItem Content="Sau 30 phút" />
+                                            <ComboBoxItem Content="Sau 1 giờ" />
+                                            <ComboBoxItem Content="Sau 2 giờ" />
+                                            <ComboBoxItem Content="Sau 4 giờ" />
+                                        </ComboBox>
+                                        <ui:ToggleSwitch IsChecked="{Binding IsTabSnoozerEnabled, Mode=TwoWay}" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Chế độ Ngủ Tab tự động (Tab Snoozer)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Tự động đưa các tab không tương tác về trạng thái ngủ để giải phóng RAM." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Row 2: Hardware Acceleration -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding IsHardwareAccelerationEnabled, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel>
+                                        <TextBlock Text="Tăng tốc phần cứng (Hardware Acceleration)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Sử dụng GPU để dựng hình mượt mà cho video 4K, đồ họa WebGL và cuộn trang 120Hz+." Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Row 3: GX Cleaner -->
+                                <DockPanel Margin="0,0,0,10">
+                                    <ui:Button DockPanel.Dock="Right" Content="✨ Chạy GX Cleaner" Appearance="Primary"
+                                               Height="34" Padding="14,0" FontSize="12" FontWeight="SemiBold"
+                                               Command="{Binding RunGxCleanerCommand}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="GX Cleaner — Dọn bộ nhớ đệm &amp; dữ liệu rác" Style="{StaticResource SettingsRowTitleStyle}" Margin="0,0,8,0" />
+                                            <Border CornerRadius="4" Padding="6,2" Background="{DynamicResource ThemeAccentSoftBrush}" BorderBrush="{DynamicResource ThemeAccentBorderBrush}" BorderThickness="1">
+                                                <TextBlock Text="{Binding GxCleanerBadgeText}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding GxCleanerFreedText}" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <!-- Progress Bar & Status -->
+                                <ProgressBar Value="{Binding GxCleanerProgress}" Height="4" Margin="0,4,0,6" Foreground="{DynamicResource ThemeAccentBrush}" Background="#1F2937" BorderThickness="0" />
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding GxCleanerProgress, StringFormat='{}{0:0}%'}" FontSize="11" FontWeight="Bold" Foreground="#F9FAFB" />
+                                    <TextBlock Text="{Binding GxCleanerStatusText}" FontSize="11" Foreground="#9CA3AF" />
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 8: NGÔN NGỮ & DỊCH TRANG                                       -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionLanguage, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Ngôn ngữ &amp; Dịch trang web trực tiếp" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,10">
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding TranslateTargetLanguageDisplay}"
+                                               FontSize="12.5" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center" />
+                                    <StackPanel>
+                                        <TextBlock Text="Ngôn ngữ đích khi dịch trang web" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Áp dụng cho tiện ích chuột phải 'Dịch sang Tiếng Việt' và mục Dịch trong menu trình duyệt."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <WrapPanel>
+                                    <ui:Button Content="Tiếng Việt (vi)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectTranslateLanguageCommand}" CommandParameter="vi" />
+                                    <ui:Button Content="English (en)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectTranslateLanguageCommand}" CommandParameter="en" />
+                                    <ui:Button Content="日本語 (ja)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectTranslateLanguageCommand}" CommandParameter="ja" />
+                                    <ui:Button Content="한국어 (ko)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectTranslateLanguageCommand}" CommandParameter="ko" />
+                                    <ui:Button Content="中文 (zh-CN)" Style="{StaticResource SettingsChoicePillStyle}" Command="{Binding SelectTranslateLanguageCommand}" CommandParameter="zh-CN" />
+                                </WrapPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <StackPanel>
+                                    <TextBlock Text="Dịch trực tiếp trên trang (In-Place DOM Translation)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                    <TextBlock Text="Giữ nguyên URL, phiên đăng nhập và nội dung đang nhập trong biểu mẫu (kể cả trang nội bộ/intranet). Bạn có thể chuyển nhanh qua lại giữa bản dịch và bản gốc ngay trên thanh nổi góc phải."
+                                               Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                 </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 9: TỆP ĐÃ TẢI VỀ & MEDIA (CỐC CỐC SAVIOR)                      -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionDownloads, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Tệp đã tải về &amp; Bắt link Media (Video Sniffer)" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Vị trí lưu tệp tải xuống" Style="{StaticResource SettingsRowTitleStyle}" />
+                                <TextBlock Text="{Binding DownloadDirectoryPath}" FontSize="12" Foreground="{DynamicResource ThemeAccentBrush}"
+                                           TextWrapping="Wrap" Margin="0,4,0,10" />
+
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:Button Content="Thay đổi thư mục..." Appearance="Primary" Height="34" Padding="14,0" Margin="0,0,8,0" FontSize="12"
+                                               Command="{Binding BrowseDownloadFolderCommand}" />
+                                    <ui:Button Content="Mở thư mục tải về" Appearance="Secondary" Height="34" Padding="14,0" FontSize="12"
+                                               Command="{Binding OpenDefaultDownloadFolderCommand}" />
+                                </StackPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <StackPanel>
+                                    <TextBlock Text="Bộ tải đa luồng 8 luồng &amp; Video Sniffer kiểu Cốc Cốc" Style="{StaticResource SettingsRowTitleStyle}" />
+                                    <TextBlock Text="Tự động bắt luồng MP4, HLS (.m3u8), DASH (.mpd), hỗ trợ trích xuất chất lượng cao với yt-dlp / FFmpeg và phát tách cửa sổ bằng libmpv. Mọi tiến trình con được quản lý an toàn qua Win32 Job Object."
+                                               Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 10: THANH BÊN (SIDEBAR KIỂU OPERA GX)                           -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionSidebar, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Thanh bên (Sidebar)" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <!-- Card 1: Bật/Tắt Thanh bên & Xem trước trực tiếp -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right"
+                                                     IsChecked="{Binding IsLeftSidebarVisible, Mode=TwoWay}"
+                                                     VerticalAlignment="Center" />
+                                    <StackPanel>
+                                        <TextBlock Text="Hiển thị Thanh bên bên trái trình duyệt" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Ghim các ứng dụng nhắn tin và công cụ truy cập nhanh dọc theo cạnh trái cửa sổ."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Live Sidebar Dock Preview (giống #sidebar-dock-preview trong tệp HTML mẫu) -->
+                                <Border Background="#0B0E11"
+                                        BorderBrush="{DynamicResource BrowserBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="12"
+                                        Padding="14,10">
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Left"
+                                                   Text="Xem trước thanh bên:"
+                                                   FontSize="12"
+                                                   Foreground="#94A3B8"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,12,0" />
+                                        <TextBlock DockPanel.Dock="Right"
+                                                   Text="Cập nhật trực tiếp"
+                                                   FontSize="11"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource ThemeAccentBrush}"
+                                                   VerticalAlignment="Center" />
+                                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!-- Zalo -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#12243B" BorderBrush="#244775" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowZalo, Converter={StaticResource BoolToVis}}" ToolTip="Zalo">
+                                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Viewbox Width="16" Height="16">
+                                                        <Canvas Width="24" Height="24">
+                                                            <Path Fill="#38A1FF" Data="M12 2.5C6.48 2.5 2 6.3 2 11c0 2.53 1.3 4.81 3.37 6.37-.18 1.24-.7 2.4-1.48 3.24-.17.18-.02.48.23.43 1.75-.36 3.35-1.1 4.5-1.94 1.06.26 2.2.4 3.38.4 5.52 0 10-3.8 10-8.5S17.52 2.5 12 2.5z" />
+                                                        </Canvas>
+                                                    </Viewbox>
+                                                    <TextBlock Text="Z" FontSize="9.5" FontWeight="ExtraBold" Foreground="#0B1626" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                </Grid>
+                                            </Border>
+                                            <!-- Messenger -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#211636" BorderBrush="#44296E" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowMessenger, Converter={StaticResource BoolToVis}}" ToolTip="Messenger">
+                                                <Viewbox Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#C084FC" Data="M12 2C6.48 2 2 6.15 2 11.27c0 2.91 1.45 5.5 3.72 7.21V22l3.4-1.87c.9.25 1.87.39 2.88.39 5.52 0 10-4.15 10-9.25S17.52 2 12 2z" />
+                                                        <Path Fill="#181028" Data="M13.06 14.32l-2.55-2.72-4.97 2.72 5.47-5.8 2.61 2.72 4.91-2.72-5.47 5.8z" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Border>
+                                            <!-- Discord -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#191E3A" BorderBrush="#313B73" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowDiscord, Converter={StaticResource BoolToVis}}" ToolTip="Discord">
+                                                <Viewbox Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#818CF8" Data="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Border>
+                                            <!-- Telegram -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#122638" BorderBrush="#214B6E" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowTelegram, Converter={StaticResource BoolToVis}}" ToolTip="Telegram">
+                                                <Viewbox Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-1,0,0,0">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#38BDF8" Data="M21.9 4.2c.3-.9-.5-1.7-1.4-1.3L2.8 9.8c-1 .4-.9 1.8.1 2.1l4.4 1.4 1.7 5.3c.2.7 1.1.9 1.6.4l2.5-2.5 4.8 3.5c.8.6 1.9.1 2.1-.8L21.9 4.2zM9.2 13.4l8.3-5.8c.2-.1.4.2.2.3l-6.8 6.4-.3 3.1-1.4-4z" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Border>
+                                            <!-- AI Chat -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#142922" BorderBrush="#22463A" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowAiChat, Converter={StaticResource BoolToVis}}" ToolTip="AI Chat">
+                                                <ui:SymbolIcon Symbol="Sparkle20" FontSize="15" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                            </Border>
+                                            <!-- Dấu trang -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#171E26" BorderBrush="#26313E" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowBookmarks, Converter={StaticResource BoolToVis}}" ToolTip="Dấu trang">
+                                                <ui:SymbolIcon Symbol="Bookmark20" FontSize="15" Foreground="#E2E8F0" />
+                                            </Border>
+                                            <!-- Lịch sử -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#171E26" BorderBrush="#26313E" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowHistory, Converter={StaticResource BoolToVis}}" ToolTip="Lịch sử">
+                                                <ui:SymbolIcon Symbol="History20" FontSize="15" Foreground="#E2E8F0" />
+                                            </Border>
+                                            <!-- Quản lý tải xuống -->
+                                            <Border Width="32" Height="32" CornerRadius="8" Background="#282115" BorderBrush="#443720" BorderThickness="1" Margin="0,0,7,0"
+                                                    Visibility="{Binding SidebarShowDownloads, Converter={StaticResource BoolToVis}}" ToolTip="Quản lý tải xuống">
+                                                <ui:SymbolIcon Symbol="ArrowDownload20" FontSize="15" Foreground="#F59E0B" />
+                                            </Border>
+                                        </WrapPanel>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 2: Biểu tượng trên Thanh bên (Sidebar) -->
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,12">
+                                    <TextBlock DockPanel.Dock="Left" Text="BIỂU TƯỢNG TRÊN THANH BÊN (SIDEBAR)"
+                                               FontSize="11.5" FontWeight="Bold" Foreground="#94A3B8" VerticalAlignment="Center" />
+                                    <TextBlock DockPanel.Dock="Right" Text="Nhấn công tắc để ghim hoặc ẩn ngay lập tức"
+                                               FontSize="11" Foreground="#64748B" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </DockPanel>
+
+                                <!-- Zalo -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowZalo, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#12243B" BorderBrush="#244775" BorderThickness="1" Margin="0,0,12,0">
+                                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Viewbox Width="19" Height="19">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Fill="#38A1FF" Data="M12 2.5C6.48 2.5 2 6.3 2 11c0 2.53 1.3 4.81 3.37 6.37-.18 1.24-.7 2.4-1.48 3.24-.17.18-.02.48.23.43 1.75-.36 3.35-1.1 4.5-1.94 1.06.26 2.2.4 3.38.4 5.52 0 10-3.8 10-8.5S17.52 2.5 12 2.5z" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                                <TextBlock Text="Z" FontSize="10.5" FontWeight="ExtraBold" Foreground="#0B1626" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                            </Grid>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Zalo" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Nhắn tin &amp; gọi video Zalo ngay bên hông trình duyệt" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Messenger -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowMessenger, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#211636" BorderBrush="#44296E" BorderThickness="1" Margin="0,0,12,0">
+                                            <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Fill="#C084FC" Data="M12 2C6.48 2 2 6.15 2 11.27c0 2.91 1.45 5.5 3.72 7.21V22l3.4-1.87c.9.25 1.87.39 2.88.39 5.52 0 10-4.15 10-9.25S17.52 2 12 2z" />
+                                                    <Path Fill="#181028" Data="M13.06 14.32l-2.55-2.72-4.97 2.72 5.47-5.8 2.61 2.72 4.91-2.72-5.47 5.8z" />
+                                                </Canvas>
+                                            </Viewbox>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Messenger" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Trò chuyện Facebook Messenger không cần chuyển tab" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Discord -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowDiscord, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#191E3A" BorderBrush="#313B73" BorderThickness="1" Margin="0,0,12,0">
+                                            <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Fill="#818CF8" Data="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" />
+                                                </Canvas>
+                                            </Viewbox>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Discord" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Kênh thoại và cộng đồng game thủ" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Telegram -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowTelegram, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#122638" BorderBrush="#214B6E" BorderThickness="1" Margin="0,0,12,0">
+                                            <Viewbox Width="17" Height="17" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-1,0,0,0">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Fill="#38BDF8" Data="M21.9 4.2c.3-.9-.5-1.7-1.4-1.3L2.8 9.8c-1 .4-.9 1.8.1 2.1l4.4 1.4 1.7 5.3c.2.7 1.1.9 1.6.4l2.5-2.5 4.8 3.5c.8.6 1.9.1 2.1-.8L21.9 4.2zM9.2 13.4l8.3-5.8c.2-.1.4.2.2.3l-6.8 6.4-.3 3.1-1.4-4z" />
+                                                </Canvas>
+                                            </Viewbox>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Telegram" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Kênh tin tức nhanh và lưu trữ đám mây" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- AI Chat -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowAiChat, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#142922" BorderBrush="#22463A" BorderThickness="1" Margin="0,0,12,0">
+                                            <ui:SymbolIcon Symbol="Sparkle20" FontSize="17" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="AI Chat" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Trợ lý AI tóm tắt trang web và hỗ trợ viết lách" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Dấu trang (Bookmarks) -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowBookmarks, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#171E26" BorderBrush="#26313E" BorderThickness="1" Margin="0,0,12,0">
+                                            <ui:SymbolIcon Symbol="Bookmark20" FontSize="16" Foreground="#E2E8F0" />
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Dấu trang (Bookmarks)" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Mở nhanh ngăn kéo danh sách trang web yêu thích đã lưu" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Lịch sử (History) -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowHistory, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#171E26" BorderBrush="#26313E" BorderThickness="1" Margin="0,0,12,0">
+                                            <ui:SymbolIcon Symbol="History20" FontSize="16" Foreground="#E2E8F0" />
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Lịch sử duyệt web" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Tra cứu lại các trang đã truy cập gần đây từ thanh bên" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <!-- Quản lý tải xuống -->
+                                <DockPanel>
+                                    <ui:ToggleSwitch DockPanel.Dock="Right" IsChecked="{Binding SidebarShowDownloads, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Border Width="36" Height="36" CornerRadius="10" Background="#282115" BorderBrush="#443720" BorderThickness="1" Margin="0,0,12,0">
+                                            <ui:SymbolIcon Symbol="ArrowDownload20" FontSize="17" Foreground="#F59E0B" />
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Quản lý tải xuống" Style="{StaticResource SettingsRowTitleStyle}" />
+                                            <TextBlock Text="Theo dõi các luồng tải đa luồng 8x đang chạy" Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ======================================================================= -->
+                    <!-- SECTION 11: TRÌNH DUYỆT MẶC ĐỊNH & GIỚI THIỆU QUANGLN                  -->
+                    <!-- ======================================================================= -->
+                    <StackPanel Visibility="{Binding ShowSectionDefaultAbout, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Trình duyệt mặc định &amp; Giới thiệu QUANGLN Browser" Style="{StaticResource SettingsSectionHeaderStyle}" />
+
+                        <Border Style="{StaticResource SettingsCardStyle}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <ui:Button DockPanel.Dock="Right" Content="Đặt làm mặc định" Appearance="Primary"
+                                               Height="34" Padding="14,0" FontSize="12"
+                                               Command="{Binding OpenWindowsDefaultAppsCommand}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Trình duyệt mặc định trên Windows" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Mở cài đặt Ứng dụng mặc định của Windows để đặt QUANGLN Browser làm trình duyệt chính."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <DockPanel>
+                                    <ui:Button DockPanel.Dock="Right" Content="Khôi phục mặc định" Appearance="Secondary"
+                                               Height="34" Padding="14,0" FontSize="12"
+                                               Command="{Binding ResetBrowserSettingsCommand}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Đặt lại toàn bộ cài đặt về mặc định ban đầu" Style="{StaticResource SettingsRowTitleStyle}" />
+                                        <TextBlock Text="Khôi phục chủ đề Cốc Cốc Neon, công cụ tìm kiếm Google, trang chủ, thu phóng 100% và thư mục tải về mặc định (không xóa Bookmarks hay mật khẩu Vault)."
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <Border Style="{StaticResource SettingsDividerStyle}" />
+
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Image Source="pack://application:,,,/Assets/logo.png"
+                                           Width="56"
+                                           Height="56"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           Margin="0,0,14,0"
+                                           VerticalAlignment="Center" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="QUANGLN Browser · Phiên bản 1.0 (x64)" FontSize="15" FontWeight="Bold" Foreground="#F9FAFB" />
+                                        <TextBlock Text="Nền tảng: .NET 8 WPF (WPF-UI v3 Dark Mica) · Nhân duyệt web: CefSharp Chromium x64"
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,4,0,2" />
+                                        <TextBlock Text="Bảo mật: SQLCipher AES-256 + Argon2id + Windows Hello + Win32 Job Object Zero-Leak"
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,2,0,2" />
+                                        <TextBlock Text="Mạng &amp; Media: sing-box (1.1.1.1 WARP / VLESS / Shadowsocks) · AdBlock 2 tầng · FFmpeg / yt-dlp / libmpv"
+                                                   Style="{StaticResource SettingsRowSubtitleStyle}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

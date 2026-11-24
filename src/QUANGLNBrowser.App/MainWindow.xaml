@@ -1,0 +1,2398 @@
+<ui:FluentWindow x:Class="QUANGLNBrowser.App.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:views="clr-namespace:QUANGLNBrowser.App.Views"
+                 xmlns:conv="clr-namespace:QUANGLNBrowser.App.Converters"
+                 Title="{Binding WindowTitle}"
+                 Icon="pack://application:,,,/Assets/app.ico"
+                 Width="1200"
+                 Height="720"
+                 MinWidth="960"
+                 MinHeight="600"
+                 WindowStartupLocation="CenterScreen"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 Background="{DynamicResource BrowserSurfaceBrush}">
+    <Window.Resources>
+        <conv:StringEqualsToVisibilityConverter x:Key="StrEqToVis" />
+        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+
+        <!-- Style cho từng dòng trong Menu Tùy chỉnh và điều khiển (☰) -->
+        <Style x:Key="AppMenuRowButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="33" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Margin" Value="2,1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="#E5E7EB" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="MenuRowBorder"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MenuRowBorder" Property="Background" Value="#343442" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="MenuRowBorder" Property="Background" Value="#404052" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Style cho nút chọn Vùng ảo kiểu Opera VPN (Tối ưu / Châu Á / Châu Âu / Châu Mỹ) -->
+        <Style x:Key="VpnRegionPillStyle" TargetType="Button">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="#CBD5E1" />
+            <Setter Property="Background" Value="#1E1E28" />
+            <Setter Property="BorderBrush" Value="#323242" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="PillBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="6,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PillBorder" Property="BorderBrush" Value="#38BDF8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding NewTabCommand}" />
+        <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding CloseTabCommand}" />
+        <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding ReloadCommand}" />
+        <KeyBinding Key="Left" Modifiers="Alt" Command="{Binding BackCommand}" />
+        <KeyBinding Key="Right" Modifiers="Alt" Command="{Binding ForwardCommand}" />
+        <KeyBinding Key="R" Modifiers="Alt+Shift" Command="{Binding ToggleReaderModeCommand}" />
+        <KeyBinding Key="I" Modifiers="Alt+Shift" Command="{Binding OpenHelpAndFeedbackCommand}" />
+        <KeyBinding Key="U" Modifiers="Ctrl" Command="{Binding ViewPageSourceCommand}" />
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewWindowCommand}" />
+        <KeyBinding Key="N" Modifiers="Ctrl+Shift" Command="{Binding NewIncognitoTabCommand}" />
+        <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding MenuOpenSectionCommand}" CommandParameter="History" />
+        <KeyBinding Key="J" Modifiers="Ctrl" Command="{Binding MenuOpenSectionCommand}" CommandParameter="Downloads" />
+        <KeyBinding Key="O" Modifiers="Ctrl+Shift" Command="{Binding MenuOpenSectionCommand}" CommandParameter="Bookmarks" />
+        <KeyBinding Key="Delete" Modifiers="Ctrl+Shift" Command="{Binding ClearBrowsingDataCommand}" />
+        <KeyBinding Key="P" Modifiers="Ctrl" Command="{Binding PrintPageCommand}" />
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding ToggleFindBarCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SavePageAsCommand}" />
+        <KeyBinding Key="F12" Command="{Binding OpenDevToolsCommand}" />
+        <KeyBinding Key="L" Modifiers="Ctrl+Shift" Command="{Binding PanicLockCommand}" />
+    </Window.InputBindings>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="44" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ROW 0: Thanh Tab ngang tích hợp TitleBar -->
+        <Grid Grid.Row="0" Background="{DynamicResource BrowserChromeBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="138" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Logo / Brand Wordmark đồng bộ Trang chủ QUANGLN BROWSER / Nhãn Cửa sổ Ẩn danh -->
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Margin="10,0,6,0">
+                <!-- Cụm Logo + Chữ thương hiệu QUANGLN BROWSER -->
+                <Border Background="Transparent"
+                        Padding="2,2,6,2"
+                        Cursor="Hand"
+                        ToolTip="QUANGLN Browser — Trang chủ">
+                    <Border.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding GoHomeCommand}" />
+                    </Border.InputBindings>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Logo kèm quầng sáng Neon đồng bộ chủ đề -->
+                        <Grid Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Ellipse Width="22"
+                                     Height="22"
+                                     Fill="{DynamicResource ThemeAccentBrush}"
+                                     Opacity="0.45">
+                                <Ellipse.Effect>
+                                    <BlurEffect Radius="9" />
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <Image Source="pack://application:,,,/Assets/logo.png"
+                                   Width="24"
+                                   Height="24"
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center" />
+                        </Grid>
+
+                        <!-- Wordmark QUANG + LN (Neon Glow) + BROWSER -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="QUANG"
+                                       FontFamily="Bahnschrift, Segoe UI"
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       Foreground="#F8FAFC"
+                                       VerticalAlignment="Center" />
+                            <Grid VerticalAlignment="Center">
+                                <TextBlock Text="LN"
+                                           FontFamily="Bahnschrift, Segoe UI"
+                                           FontSize="14"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource ThemeAccentBrush}"
+                                           Opacity="0.65"
+                                           IsHitTestVisible="False">
+                                    <TextBlock.Effect>
+                                        <BlurEffect Radius="7" />
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <TextBlock Text="LN"
+                                           FontFamily="Bahnschrift, Segoe UI"
+                                           FontSize="14"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource ThemeAccentBrush}" />
+                            </Grid>
+                            <TextBlock Text="BROWSER"
+                                       FontFamily="Bahnschrift, Segoe UI"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="#94A3B8"
+                                       Margin="5,1.5,0,0"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Đường phân cách dọc tinh tế giữa Brand và Thanh Tab -->
+                <Border Width="1"
+                        Height="16"
+                        Background="{DynamicResource BrowserBorderBrush}"
+                        Margin="6,0,4,0"
+                        VerticalAlignment="Center"
+                        Opacity="0.85" />
+                <Border Margin="6,0,2,0"
+                        Padding="8,2"
+                        CornerRadius="10"
+                        BorderThickness="1"
+                        Visibility="{Binding IsIncognitoWindow, Converter={StaticResource BoolToVis}}">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#2D1B4E" />
+                            <Setter Property="BorderBrush" Value="#A855F7" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsIncognitoWarpWindow}" Value="True">
+                                    <Setter Property="Background" Value="#103629" />
+                                    <Setter Property="BorderBrush" Value="#10B981" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <ui:SymbolIcon Symbol="EyeOff16" FontSize="12" Margin="0,0,4,0">
+                            <ui:SymbolIcon.Style>
+                                <Style TargetType="ui:SymbolIcon">
+                                    <Setter Property="Foreground" Value="#D8B4FE" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsIncognitoWarpWindow}" Value="True">
+                                            <Setter Property="Foreground" Value="#34D399" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:SymbolIcon.Style>
+                        </ui:SymbolIcon>
+                        <TextBlock Text="{Binding IncognitoHeaderLabel}" FontSize="10.5" FontWeight="Bold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#E9D5FF" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsIncognitoWarpWindow}" Value="True">
+                                            <Setter Property="Foreground" Value="#6EE7B7" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Danh sách Tabs + Nút "+" (Thẻ mới) nằm sát ngay bên phải tab cuối cùng -->
+            <ScrollViewer Grid.Column="1"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled"
+                          Visibility="{Binding IsLocked, Converter={StaticResource InvBoolToVis}}">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <ItemsControl ItemsSource="{Binding Tabs}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="2,4,2,4"
+                                        Padding="10,0,6,0"
+                                        Height="31"
+                                        MinWidth="145"
+                                        MaxWidth="225"
+                                        CornerRadius="8"
+                                        Cursor="Hand"
+                                        BorderThickness="1">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{DynamicResource ThemeTabIdleBrush}" />
+                                            <Setter Property="BorderBrush" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource BrowserElevatedBrush}" />
+                                                </Trigger>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource ThemeTabActiveBrush}" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBorderBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick"
+                                                      Command="{Binding DataContext.SelectTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                      CommandParameter="{Binding}" />
+                                    </Border.InputBindings>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Chấm xanh báo Tab VPN -->
+                                        <Ellipse Grid.Column="0"
+                                                 Width="7"
+                                                 Height="7"
+                                                 Fill="{StaticResource VpnConnectedBrush}"
+                                                 Margin="0,0,6,0"
+                                                 VerticalAlignment="Center"
+                                                 Visibility="{Binding IsVpnEnabled, Converter={StaticResource BoolToVis}}" />
+
+                                        <!-- Vùng hiển thị Loading Ring hoặc Favicon trang web (16x16) -->
+                                        <Grid Grid.Column="1"
+                                              Width="16"
+                                              Height="16"
+                                              Margin="0,0,7,0"
+                                              VerticalAlignment="Center">
+                                            <ui:ProgressRing Width="14"
+                                                             Height="14"
+                                                             IsIndeterminate="True"
+                                                             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
+
+                                            <Grid Visibility="{Binding IsLoading, Converter={StaticResource InvBoolToVis}}">
+                                                <ui:SymbolIcon Symbol="Settings20"
+                                                               FontSize="14"
+                                                               Foreground="{DynamicResource ThemeAccentBrush}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Visibility="{Binding IsSettingsTab, Converter={StaticResource BoolToVis}}" />
+                                                <Grid Visibility="{Binding IsSettingsTab, Converter={StaticResource InvBoolToVis}}">
+                                                    <Image Width="16"
+                                                           Height="16"
+                                                           Source="{Binding FaviconSource}"
+                                                           Stretch="Uniform"
+                                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                                           Visibility="{Binding HasFavicon, Converter={StaticResource BoolToVis}}" />
+                                                    <ui:SymbolIcon Symbol="Globe16"
+                                                                   FontSize="14"
+                                                                   Foreground="#9CA3AF"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   Visibility="{Binding HasFavicon, Converter={StaticResource InvBoolToVis}}" />
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+
+                                        <!-- Tiêu đề Tab -->
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Title}"
+                                                   FontSize="12"
+                                                   Foreground="#F3F4F6"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center" />
+
+                                        <!-- Nút đóng Tab -->
+                                        <ui:Button Grid.Column="3"
+                                                   Width="20"
+                                                   Height="20"
+                                                   Padding="0"
+                                                   Margin="6,0,0,0"
+                                                   Appearance="Transparent"
+                                                   ToolTip="Đóng thẻ (Ctrl+W)"
+                                                   Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                   CommandParameter="{Binding}">
+                                            <ui:SymbolIcon Symbol="Dismiss16" FontSize="10" />
+                                        </ui:Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Nút "+" (Thẻ mới) hình tròn nằm ngay sát bên phải tab cuối cùng -->
+                    <Button Width="28"
+                            Height="28"
+                            Margin="4,0,8,0"
+                            Cursor="Hand"
+                            ToolTip="Thẻ mới"
+                            Command="{Binding NewTabCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="#D1D5DB" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="PlusBorder"
+                                                    Width="28"
+                                                    Height="28"
+                                                    CornerRadius="14"
+                                                    Background="{TemplateBinding Background}">
+                                                <ui:SymbolIcon Symbol="Add16"
+                                                               FontSize="14"
+                                                               Foreground="{TemplateBinding Foreground}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="PlusBorder" Property="Background" Value="#3D3D4A" />
+                                                    <Setter Property="Foreground" Value="#FFFFFF" />
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="PlusBorder" Property="Background" Value="#4B4B5A" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Nút điều khiển cửa sổ (Minimize / Maximize / Close) -->
+            <ui:TitleBar Grid.Column="2"
+                         ShowMaximize="True"
+                         ShowMinimize="True"
+                         ShowClose="True" />
+        </Grid>
+
+        <!-- ROW 1: Thanh điều hướng + Omnibox + 3 Pill Badges + Đường viền Neon theo chủ đề -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource BrowserChromeBrush}"
+                BorderBrush="{DynamicResource ThemeNeonDividerBrush}"
+                BorderThickness="0,0,0,1.5"
+                Padding="8,4"
+                Visibility="{Binding IsLocked, Converter={StaticResource InvBoolToVis}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Back / Forward / Reload / Home -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
+                    <ui:Button Width="32" Height="32" Padding="0" Appearance="Transparent"
+                               IsEnabled="{Binding ActiveTab.CanGoBack, FallbackValue=False}"
+                               Command="{Binding BackCommand}" ToolTip="Quay lại">
+                        <ui:SymbolIcon Symbol="ArrowLeft20" FontSize="15" />
+                    </ui:Button>
+                    <ui:Button Width="32" Height="32" Padding="0" Appearance="Transparent"
+                               IsEnabled="{Binding ActiveTab.CanGoForward, FallbackValue=False}"
+                               Command="{Binding ForwardCommand}" ToolTip="Tiến tới">
+                        <ui:SymbolIcon Symbol="ArrowRight20" FontSize="15" />
+                    </ui:Button>
+                    <ui:Button Width="32" Height="32" Padding="0" Appearance="Transparent"
+                               Command="{Binding ReloadCommand}" ToolTip="Tải lại / Dừng">
+                        <ui:SymbolIcon Symbol="ArrowClockwise20" FontSize="15" />
+                    </ui:Button>
+                    <ui:Button Width="32" Height="32" Padding="0" Appearance="Transparent"
+                               Visibility="{Binding ShowHomeButton, Converter={StaticResource BoolToVis}}"
+                               Command="{Binding GoHomeCommand}" ToolTip="Trang chủ">
+                        <ui:SymbolIcon Symbol="Home20" FontSize="15" />
+                    </ui:Button>
+                </StackPanel>
+
+                <!-- Omnibox + Bookmark Star -->
+                <Grid Grid.Column="1" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ui:TextBox x:Name="OmniboxInput"
+                                Grid.Column="0"
+                                Height="32"
+                                Padding="12,4,36,4"
+                                FontSize="13"
+                                PlaceholderText="Nhập địa chỉ web hoặc tìm kiếm Google..."
+                                Text="{Binding OmniboxText, UpdateSourceTrigger=PropertyChanged}"
+                                PreviewKeyDown="OnOmniboxPreviewKeyDown"
+                                TextChanged="OnOmniboxTextChanged"
+                                GotKeyboardFocus="OnOmniboxGotFocus" />
+
+                    <!-- Popup gợi ý tự động các trang web đã từng truy cập (Lịch sử + Dấu trang + Tìm kiếm) -->
+                    <Popup x:Name="OmniboxSuggestionPopup"
+                           IsOpen="{Binding IsOmniboxSuggestionOpen, Mode=TwoWay}"
+                           PlacementTarget="{Binding ElementName=OmniboxInput}"
+                           Placement="Bottom"
+                           StaysOpen="False"
+                           AllowsTransparency="True"
+                           Width="{Binding ActualWidth, ElementName=OmniboxInput}">
+                        <Border Margin="0,4,0,0"
+                                Padding="6"
+                                Background="#23232D"
+                                BorderBrush="#3B3B4A"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <ItemsControl ItemsSource="{Binding OmniboxSuggestions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border x:Name="RowBorder"
+                                                Padding="12,7"
+                                                Margin="0,1"
+                                                CornerRadius="16"
+                                                Cursor="Hand"
+                                                Background="Transparent">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding DataContext.AcceptOmniboxSuggestionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}" />
+                                            </Border.InputBindings>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="20" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Icon gợi ý (Favicon trang web / Kính lúp tìm kiếm / Sao dấu trang / Lịch sử) -->
+                                                <Grid Grid.Column="0" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                                    <Image Width="16"
+                                                           Height="16"
+                                                           Source="{Binding FaviconSource}"
+                                                           Stretch="Uniform"
+                                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                                           Visibility="{Binding HasFavicon, Converter={StaticResource BoolToVis}}" />
+
+                                                    <Grid Visibility="{Binding HasFavicon, Converter={StaticResource InvBoolToVis}}">
+                                                        <ui:SymbolIcon FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <ui:SymbolIcon.Style>
+                                                                <Style TargetType="ui:SymbolIcon">
+                                                                    <Setter Property="Symbol" Value="History16" />
+                                                                    <Setter Property="Foreground" Value="#9CA3AF" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsSearchQuery}" Value="True">
+                                                                            <Setter Property="Symbol" Value="Search16" />
+                                                                            <Setter Property="Foreground" Value="#9CA3AF" />
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsBookmark}" Value="True">
+                                                                            <Setter Property="Symbol" Value="Star16" />
+                                                                            <Setter Property="Foreground" Value="#F59E0B" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ui:SymbolIcon.Style>
+                                                        </ui:SymbolIcon>
+                                                    </Grid>
+                                                </Grid>
+
+                                                <!-- Tiêu đề trang + URL màu xanh giống Chrome / Cốc Cốc -->
+                                                <TextBlock Grid.Column="1"
+                                                           FontSize="13"
+                                                           VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Margin="6,0,8,0">
+                                                    <Run Text="{Binding Title, Mode=OneWay}" Foreground="#F3F4F6" />
+                                                    <Run Text=" - " Foreground="#9CA3AF" />
+                                                    <Run Text="{Binding DisplayUrl, Mode=OneWay}" Foreground="#60A5FA" />
+                                                </TextBlock>
+
+                                                <!-- Nút xóa (×) lịch sử đã truy cập -->
+                                                <ui:Button x:Name="DeleteBtn"
+                                                           Grid.Column="2"
+                                                           Width="22"
+                                                           Height="22"
+                                                           Padding="0"
+                                                           Appearance="Transparent"
+                                                           ToolTip="Xóa gợi ý này khỏi lịch sử"
+                                                           Visibility="Hidden"
+                                                           Command="{Binding DataContext.DeleteOmniboxSuggestionHistoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           CommandParameter="{Binding}">
+                                                    <ui:SymbolIcon Symbol="Dismiss16" FontSize="11" Foreground="#9CA3AF" />
+                                                </ui:Button>
+                                            </Grid>
+                                        </Border>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                <Setter TargetName="RowBorder" Property="Background" Value="#353544" />
+                                            </DataTrigger>
+                                            <Trigger SourceName="RowBorder" Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="RowBorder" Property="Background" Value="#353544" />
+                                            </Trigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True" />
+                                                    <Condition Binding="{Binding CanDelete}" Value="True" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter TargetName="DeleteBtn" Property="Visibility" Value="Visible" />
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsSelected}" Value="True" />
+                                                    <Condition Binding="{Binding CanDelete}" Value="True" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter TargetName="DeleteBtn" Property="Visibility" Value="Visible" />
+                                            </MultiDataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </Popup>
+
+                    <ui:Button Grid.Column="0"
+                               HorizontalAlignment="Right"
+                               Width="30"
+                               Height="30"
+                               Padding="0"
+                               Margin="0,0,2,0"
+                               Appearance="Transparent"
+                               Command="{Binding ToggleBookmarkCommand}"
+                               ToolTip="Đánh dấu trang">
+                        <ui:SymbolIcon FontSize="15">
+                            <ui:SymbolIcon.Style>
+                                <Style TargetType="ui:SymbolIcon">
+                                    <Setter Property="Symbol" Value="Star20" />
+                                    <Setter Property="Foreground" Value="#9CA3AF" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCurrentPageBookmarked}" Value="True">
+                                            <Setter Property="Symbol" Value="Star24" />
+                                            <Setter Property="Filled" Value="True" />
+                                            <Setter Property="Foreground" Value="#F59E0B" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:SymbolIcon.Style>
+                        </ui:SymbolIcon>
+                    </ui:Button>
+                </Grid>
+
+                <!-- 3 Pill Badges: Video Sniffer | AdBlock Shield | VPN Status -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                    <!-- 1. Video Sniffer -->
+                    <ToggleButton x:Name="VideoSnifferToggle"
+                                  Style="{StaticResource OmniboxBadgeToggleStyle}"
+                                  Background="{StaticResource VideoDetectedBgBrush}"
+                                  ToolTip="Video Sniffer (MP4 / HLS .m3u8 / DASH .mpd / yt-dlp)">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="VideoClip20" FontSize="13" Margin="0,0,4,0" Foreground="{StaticResource VideoDetectedBrush}" />
+                            <TextBlock Text="{Binding ActiveTab.DetectedMediaCount, FallbackValue=0}" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <Popup IsOpen="{Binding IsChecked, ElementName=VideoSnifferToggle}"
+                           PlacementTarget="{Binding ElementName=VideoSnifferToggle}"
+                           Placement="Bottom"
+                           StaysOpen="False"
+                           AllowsTransparency="True">
+                        <Border Width="360" MaxHeight="440" Padding="14" Margin="0,6,0,0"
+                                Background="{DynamicResource BrowserElevatedBrush}"
+                                BorderBrush="{DynamicResource BrowserBorderBrush}"
+                                BorderThickness="1" CornerRadius="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <DockPanel Grid.Row="0" Margin="0,0,0,6">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon Symbol="VideoClip24" FontSize="16" Foreground="{StaticResource VideoDetectedBrush}" Margin="0,0,6,0" />
+                                        <TextBlock Text="Video Sniffer &amp; libmpv Pop-out" FontWeight="SemiBold" FontSize="13" Foreground="#F9FAFB" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock DockPanel.Dock="Right"
+                                               Text="{Binding ActiveTab.DetectedMediaCount, StringFormat={}{0} luồng}"
+                                               FontSize="11" Foreground="#F59E0B" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </DockPanel>
+
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding VideoSnifferStatus}"
+                                           FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+                                <ScrollViewer Grid.Row="2" MaxHeight="260" VerticalScrollBarVisibility="Auto" Margin="0,0,0,8">
+                                    <ItemsControl ItemsSource="{Binding ActiveTab.DetectedMediaItems}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,0,6" Padding="10,8" CornerRadius="8"
+                                                        Background="{DynamicResource BrowserChromeBrush}"
+                                                        BorderBrush="{DynamicResource BrowserBorderBrush}"
+                                                        BorderThickness="1">
+                                                    <StackPanel>
+                                                        <DockPanel Margin="0,0,0,4">
+                                                            <Border Background="#33F59E0B" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                                                <TextBlock Text="{Binding FormatBadge}" FontSize="10" FontWeight="Bold" Foreground="#F59E0B" />
+                                                            </Border>
+                                                            <TextBlock DockPanel.Dock="Right" Text="{Binding DisplaySize}" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding DisplayTitle}" FontSize="12" FontWeight="SemiBold" Foreground="#F3F4F6"
+                                                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                        </DockPanel>
+                                                        <TextBlock Text="{Binding Url}" FontSize="10" Foreground="#6B7280"
+                                                                   TextTrimming="CharacterEllipsis" Margin="0,0,0,8" />
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="8" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <ui:Button Grid.Column="0"
+                                                                       Appearance="Secondary"
+                                                                       HorizontalAlignment="Stretch"
+                                                                       Height="28" Padding="6,0"
+                                                                       Command="{Binding DataContext.PopOutDetectedMediaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                       CommandParameter="{Binding}">
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                    <ui:SymbolIcon Symbol="WindowNew20" FontSize="13" Margin="0,0,4,0" Foreground="#F59E0B" />
+                                                                    <TextBlock Text="Xem riêng (libmpv)" FontSize="11" />
+                                                                </StackPanel>
+                                                            </ui:Button>
+                                                            <ui:Button Grid.Column="2"
+                                                                       Appearance="Primary"
+                                                                       HorizontalAlignment="Stretch"
+                                                                       Height="28" Padding="6,0"
+                                                                       Command="{Binding DataContext.DownloadDetectedMediaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                       CommandParameter="{Binding}">
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                                    <ui:SymbolIcon Symbol="ArrowDownload20" FontSize="13" Margin="0,0,4,0" />
+                                                                    <TextBlock Text="Tải xuống" FontSize="11" />
+                                                                </StackPanel>
+                                                            </ui:Button>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+
+                                <ui:Button Grid.Row="3"
+                                           Content="Quét chất lượng 4K/1080p/Audio bằng yt-dlp"
+                                           Appearance="Secondary"
+                                           HorizontalAlignment="Stretch"
+                                           FontSize="12"
+                                           Command="{Binding ProbeTabWithYtDlpCommand}" />
+                            </Grid>
+                        </Border>
+                    </Popup>
+
+                    <!-- 2. AdBlock Shield (Kiểu Cốc Cốc Shield) -->
+                    <ToggleButton x:Name="AdBlockToggle"
+                                  Style="{StaticResource OmniboxBadgeToggleStyle}"
+                                  Background="{StaticResource AdBlockActiveBgBrush}"
+                                  ToolTip="Cốc Cốc AdBlock Shield (EasyList + EasyPrivacy + ABPVN + Annoyances)">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Shield20" FontSize="13" Margin="0,0,4,0" Foreground="{StaticResource AdBlockActiveBrush}" />
+                            <TextBlock Text="{Binding ActiveTab.BlockedAdsCount, FallbackValue=0}" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <Popup IsOpen="{Binding IsChecked, ElementName=AdBlockToggle}"
+                           PlacementTarget="{Binding ElementName=AdBlockToggle}"
+                           Placement="Bottom"
+                           StaysOpen="False"
+                           AllowsTransparency="True">
+                        <Border Width="340" Padding="16" Margin="0,6,0,0"
+                                Background="{DynamicResource BrowserElevatedBrush}"
+                                BorderBrush="{DynamicResource BrowserBorderBrush}"
+                                BorderThickness="1" CornerRadius="12">
+                            <StackPanel>
+                                <!-- Header kiểu Cốc Cốc: Tên miền + Tiêu đề Shield -->
+                                <DockPanel Margin="0,0,0,12">
+                                    <ui:SymbolIcon Symbol="ShieldCheckmark24" FontSize="20" Foreground="{StaticResource AdBlockActiveBrush}" Margin="0,0,8,0" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Chặn quảng cáo Cốc Cốc" FontWeight="Bold" FontSize="13" Foreground="#F9FAFB" />
+                                        <TextBlock Text="{Binding CurrentTabDomain, FallbackValue='Trang hiện tại'}"
+                                                   FontSize="11.5" Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" MaxWidth="220" />
+                                    </StackPanel>
+                                </DockPanel>
+
+                                <!-- Công tắc bật/tắt trên trang này (Kiểu Cốc Cốc Whitelist Toggle) -->
+                                <Border Padding="12,10" CornerRadius="9" Background="{DynamicResource BrowserChromeBrush}" Margin="0,0,0,10">
+                                    <DockPanel>
+                                        <ui:Button DockPanel.Dock="Right" Appearance="Secondary" Padding="10,4" Height="30" FontSize="11.5"
+                                                   Command="{Binding ToggleCurrentDomainWhitelistCommand}">
+                                            <TextBlock>
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Tạm dừng" />
+                                                        <Setter Property="Foreground" Value="#F87171" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCurrentDomainWhitelisted}" Value="True">
+                                                                <Setter Property="Text" Value="Bật lại" />
+                                                                <Setter Property="Foreground" Value="#34D399" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </ui:Button>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock FontSize="12.5" FontWeight="SemiBold" Foreground="#F3F4F6">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Đang bảo vệ trang này" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCurrentDomainWhitelisted}" Value="True">
+                                                                <Setter Property="Text" Value="Đã tạm dừng trên trang này" />
+                                                                <Setter Property="Foreground" Value="#F87171" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="Không hiển thị banner, pop-up phiền nhiễu" FontSize="10.5" Foreground="#9CA3AF" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+
+                                <!-- Thống kê số lượng chặn trên trang này & trọn đời -->
+                                <Border Padding="10,8" CornerRadius="8" Background="{DynamicResource BrowserChromeBrush}" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                            <TextBlock Text="QC trang này" FontSize="10.5" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding ActiveTab.BlockedAdsCount, FallbackValue=0}"
+                                                       FontSize="17" FontWeight="Bold" Foreground="{StaticResource AdBlockActiveBrush}" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                            <TextBlock Text="Theo dõi" FontSize="10.5" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding ActiveTab.BlockedTrackersCount, FallbackValue=0}"
+                                                       FontSize="17" FontWeight="Bold" Foreground="#A78BFA" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                            <TextBlock Text="Tổng trọn đời" FontSize="10.5" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding AdBlockTotalAdsBlocked, StringFormat={}{0:N0}}"
+                                                       FontSize="17" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Chế độ chặn kiểu Cốc Cốc: Tiêu chuẩn vs Nâng cao -->
+                                <TextBlock Text="Chế độ chặn quảng cáo" FontSize="11" FontWeight="SemiBold" Foreground="#9CA3AF" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="6" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:Button Grid.Column="0" Content="Tiêu chuẩn (Khuyên dùng)" FontSize="11" Height="30" Padding="4,0"
+                                               Command="{Binding SetAdBlockModeCommand}" CommandParameter="standard">
+                                        <ui:Button.Style>
+                                            <Style TargetType="ui:Button">
+                                                <Setter Property="Appearance" Value="Secondary" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAdBlockStandardMode}" Value="True">
+                                                        <Setter Property="Appearance" Value="Primary" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:Button.Style>
+                                    </ui:Button>
+                                    <ui:Button Grid.Column="2" Content="Nâng cao (Nghiêm ngặt)" FontSize="11" Height="30" Padding="4,0"
+                                               Command="{Binding SetAdBlockModeCommand}" CommandParameter="strict">
+                                        <ui:Button.Style>
+                                            <Style TargetType="ui:Button">
+                                                <Setter Property="Appearance" Value="Secondary" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAdBlockStrictMode}" Value="True">
+                                                        <Setter Property="Appearance" Value="Primary" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:Button.Style>
+                                    </ui:Button>
+                                </Grid>
+
+                                <!-- Nút Chọn & Chặn phần tử thủ công (Element Picker kiểu Cốc Cốc) -->
+                                <ui:Button Appearance="Secondary" HorizontalAlignment="Stretch" Margin="0,0,0,6" Height="32" FontSize="11.5"
+                                           Command="{Binding StartElementPickerCommand}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <ui:SymbolIcon Symbol="Target20" FontSize="14" Margin="0,0,6,0" Foreground="{DynamicResource ThemeAccentBrush}" />
+                                        <TextBlock Text="🎯 Chọn phần tử để chặn trên trang này" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ui:Button>
+
+                                <!-- Nút Mở cài đặt Chặn quảng cáo chi tiết -->
+                                <ui:Button Appearance="Transparent" HorizontalAlignment="Stretch" Height="28" FontSize="11.5" Foreground="#9CA3AF"
+                                           Command="{Binding OpenSettingsPageCommand}" CommandParameter="AdBlock">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <ui:SymbolIcon Symbol="Settings20" FontSize="13" Margin="0,0,5,0" />
+                                        <TextBlock Text="Cài đặt bộ lọc &amp; quy tắc nâng cao..." VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ui:Button>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+
+                    <!-- 3. Opera-Style Built-in VPN Badge & Deep Control Panel (1.1.1.1 WARP + sing-box + Telemetry) -->
+                    <ToggleButton x:Name="VpnToggle"
+                                  ToolTip="QUANGLN Shield VPN (Opera UX + 1.1.1.1 WARP WireGuard + sing-box + Kill Switch + Chống WebRTC Leak)">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton" BasedOn="{StaticResource OmniboxBadgeToggleStyle}">
+                                <Setter Property="Background" Value="#2A2A34" />
+                                <Setter Property="BorderBrush" Value="#3C3C4A" />
+                                <Setter Property="Foreground" Value="#D1D5DB" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsVpnConnected}" Value="True">
+                                        <Setter Property="Background" Value="#123447" />
+                                        <Setter Property="BorderBrush" Value="#38BDF8" />
+                                        <Setter Property="Foreground" Value="#E0F2FE" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsKillSwitchTripped}" Value="True">
+                                        <Setter Property="Background" Value="#451A1A" />
+                                        <Setter Property="BorderBrush" Value="#EF4444" />
+                                        <Setter Property="Foreground" Value="#FCA5A5" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="GlobeShield20" FontSize="13" Margin="0,0,5,0">
+                                <ui:SymbolIcon.Style>
+                                    <Style TargetType="ui:SymbolIcon">
+                                        <Setter Property="Foreground" Value="#9CA3AF" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsVpnConnected}" Value="True">
+                                                <Setter Property="Foreground" Value="#38BDF8" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsKillSwitchTripped}" Value="True">
+                                                <Setter Property="Foreground" Value="#EF4444" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:SymbolIcon.Style>
+                            </ui:SymbolIcon>
+                            <TextBlock Text="{Binding VpnBadgeText}" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <Popup IsOpen="{Binding IsChecked, ElementName=VpnToggle}"
+                           PlacementTarget="{Binding ElementName=VpnToggle}"
+                           Placement="Bottom"
+                           HorizontalOffset="-220"
+                           StaysOpen="False"
+                           AllowsTransparency="True">
+                        <Border Width="382" MaxHeight="660" Padding="14" Margin="0,6,0,0"
+                                Background="#1E1E27"
+                                BorderBrush="#353545"
+                                BorderThickness="1" CornerRadius="14">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel>
+                                    <!-- HERO CARD kiểu Opera VPN: Công tắc nguồn lớn + Trạng thái mã hóa + Thời gian phiên -->
+                                    <Border Padding="12" CornerRadius="10" Margin="0,0,0,10" BorderThickness="1">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#16161E" />
+                                                <Setter Property="BorderBrush" Value="#2E2E3B" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsVpnConnected}" Value="True">
+                                                        <Setter Property="Background" Value="#102838" />
+                                                        <Setter Property="BorderBrush" Value="#0284C7" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsKillSwitchTripped}" Value="True">
+                                                        <Setter Property="Background" Value="#361414" />
+                                                        <Setter Property="BorderBrush" Value="#EF4444" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right"
+                                                        Width="88" Height="34" Cursor="Hand"
+                                                        Command="{Binding ToggleGlobalVpnCommand}"
+                                                        ToolTip="Bật / Tắt VPN toàn trình duyệt">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Background" Value="#2563EB" />
+                                                            <Setter Property="Foreground" Value="#FFFFFF" />
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="Button">
+                                                                        <Border x:Name="PwrBorder"
+                                                                                Background="{TemplateBinding Background}"
+                                                                                CornerRadius="17"
+                                                                                Padding="10,0">
+                                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                                <ui:SymbolIcon Symbol="Power20" FontSize="14" Margin="0,0,5,0" Foreground="#FFFFFF" />
+                                                                                <TextBlock x:Name="PwrLabel" Text="BẬT" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                                            </StackPanel>
+                                                                        </Border>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsGlobalVpnEnabled}" Value="True">
+                                                                                <Setter TargetName="PwrBorder" Property="Background" Value="#10B981" />
+                                                                                <Setter TargetName="PwrLabel" Property="Text" Value="ĐANG BẬT" />
+                                                                            </DataTrigger>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter TargetName="PwrBorder" Property="Opacity" Value="0.9" />
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+
+                                                <StackPanel VerticalAlignment="Center" Margin="0,0,8,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <ui:SymbolIcon Symbol="GlobeShield24" FontSize="16" Foreground="#38BDF8" Margin="0,0,6,0" />
+                                                        <TextBlock Text="QUANGLN Shield VPN" FontWeight="Bold" FontSize="13.5" Foreground="#F9FAFB" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding VpnEncryptionSummary}" FontSize="10.5" Foreground="#94A3B8" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </DockPanel>
+
+                                            <DockPanel Margin="0,8,0,0">
+                                                <Border DockPanel.Dock="Right"
+                                                        Background="#2638BDF8" CornerRadius="6" Padding="7,2" Margin="6,0,0,0"
+                                                        Visibility="{Binding IsVpnConnected, Converter={StaticResource BoolToVis}}">
+                                                    <TextBlock Text="{Binding VpnSessionDurationText}" FontSize="10.5" FontWeight="SemiBold" Foreground="#7DD3FC" />
+                                                </Border>
+                                                <TextBlock Text="{Binding VpnStatusMessage}"
+                                                           FontSize="11" Foreground="#E2E8F0" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                            </DockPanel>
+
+                                            <ui:Button Content="Khôi phục kết nối (Reset Kill Switch)"
+                                                       Appearance="Danger"
+                                                       HorizontalAlignment="Stretch"
+                                                       Height="28" FontSize="11" Margin="0,8,0,0"
+                                                       Visibility="{Binding IsKillSwitchTripped, Converter={StaticResource BoolToVis}}"
+                                                       Command="{Binding ResetKillSwitchCommand}" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- CHỌN VỊ TRÍ ẢO KIỂU OPERA VPN (4 VÙNG 1 CHẠM) -->
+                                    <DockPanel Margin="0,0,0,5">
+                                        <TextBlock Text="Vị trí ảo (Opera Virtual Location)" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" />
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding VpnRegionSummary}" FontSize="10.5" Foreground="#38BDF8" HorizontalAlignment="Right" TextTrimming="CharacterEllipsis" MaxWidth="165" />
+                                    </DockPanel>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="5" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="5" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="5" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Button Grid.Column="0" Content="⚡ Tối ưu" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Optimal">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource VpnRegionPillStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedVpnRegionKey}" Value="Optimal">
+                                                            <Setter Property="Background" Value="#0369A1" />
+                                                            <Setter Property="BorderBrush" Value="#38BDF8" />
+                                                            <Setter Property="Foreground" Value="#FFFFFF" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <Button Grid.Column="2" Content="Châu Á" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Asia">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource VpnRegionPillStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedVpnRegionKey}" Value="Asia">
+                                                            <Setter Property="Background" Value="#0369A1" />
+                                                            <Setter Property="BorderBrush" Value="#38BDF8" />
+                                                            <Setter Property="Foreground" Value="#FFFFFF" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <Button Grid.Column="4" Content="Châu Âu" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Europe">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource VpnRegionPillStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedVpnRegionKey}" Value="Europe">
+                                                            <Setter Property="Background" Value="#0369A1" />
+                                                            <Setter Property="BorderBrush" Value="#38BDF8" />
+                                                            <Setter Property="Foreground" Value="#FFFFFF" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <Button Grid.Column="6" Content="Châu Mỹ" Command="{Binding SelectVpnRegionCommand}" CommandParameter="Americas">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource VpnRegionPillStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedVpnRegionKey}" Value="Americas">
+                                                            <Setter Property="Background" Value="#0369A1" />
+                                                            <Setter Property="BorderBrush" Value="#38BDF8" />
+                                                            <Setter Property="Foreground" Value="#FFFFFF" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- ĐỒNG HỒ LƯU LƯỢNG & IP ẢO THỜI GIAN THỰC (Clash API Telemetry) -->
+                                    <Border Padding="10,8" CornerRadius="10" Background="#16161E" BorderBrush="#2C2C38" BorderThickness="1" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <DockPanel Margin="0,0,0,8">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="IP ảo:" FontSize="11" Foreground="#94A3B8" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding VpnVirtualIp}" FontSize="12" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <Border Background="#2210B981" CornerRadius="5" Padding="6,2" Margin="0,0,6,0">
+                                                        <TextBlock Text="{Binding VpnPoPLocation}" FontSize="10" FontWeight="Bold" Foreground="#34D399" />
+                                                    </Border>
+                                                    <ui:Button Width="24" Height="24" Padding="0" Appearance="Transparent"
+                                                               Command="{Binding CopyVirtualIpCommand}"
+                                                               ToolTip="Sao chép địa chỉ IP ảo">
+                                                        <ui:SymbolIcon Symbol="Copy16" FontSize="12" Foreground="#9CA3AF" />
+                                                    </ui:Button>
+                                                </StackPanel>
+                                            </DockPanel>
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="72" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="⬇ Đã tải (Mã hóa)" FontSize="10" Foreground="#94A3B8" />
+                                                    <TextBlock Text="{Binding VpnDownloadTotalText}" FontSize="12.5" FontWeight="Bold" Foreground="#10B981" />
+                                                    <TextBlock Text="{Binding VpnDownloadSpeedText}" FontSize="10" Foreground="#64748B" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="⬆ Đã gửi (Mã hóa)" FontSize="10" Foreground="#94A3B8" />
+                                                    <TextBlock Text="{Binding VpnUploadTotalText}" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" />
+                                                    <TextBlock Text="{Binding VpnUploadSpeedText}" FontSize="10" Foreground="#64748B" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                                                    <TextBlock Text="Kết nối" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Right" />
+                                                    <TextBlock Text="{Binding VpnActiveConnections}" FontSize="12.5" FontWeight="Bold" Foreground="#F8FAFC" HorizontalAlignment="Right" />
+                                                    <TextBlock Text="luồng" FontSize="10" Foreground="#64748B" HorizontalAlignment="Right" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- CHỌN MÁY CHỦ CHI TIẾT + PING + TỐI ƯU CLOUDFLARE EDGE -->
+                                    <DockPanel Margin="0,0,0,4">
+                                        <TextBlock Text="Máy chủ VPN (sing-box Outbound)" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <ui:Button Content="⚡ Tối ưu Edge"
+                                                       Height="22" Padding="7,0" FontSize="10.5" Margin="0,0,4,0"
+                                                       Appearance="Secondary"
+                                                       Command="{Binding OptimizeWarpEndpointCommand}"
+                                                       ToolTip="Quét toàn bộ Cloudflare WARP Edge IP để tìm đường đi nhanh nhất" />
+                                            <ui:Button Content="Ping"
+                                                       Height="22" Padding="8,0" FontSize="10.5"
+                                                       Appearance="Secondary"
+                                                       Command="{Binding PingAllVpnNodesCommand}"
+                                                       ToolTip="Đo độ trễ TCP tới toàn bộ máy chủ VPN" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <ComboBox ItemsSource="{Binding VpnNodes}"
+                                              SelectedItem="{Binding SelectedVpnNode}"
+                                              Margin="0,0,0,10">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel Width="318">
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding DisplayLatency}" FontSize="11" Foreground="#10B981" Margin="8,0,0,0" />
+                                                    <Border DockPanel.Dock="Right" Background="#2238BDF8" CornerRadius="4" Padding="5,1" Margin="6,0,0,0">
+                                                        <TextBlock Text="{Binding RegionLabel}" FontSize="9.5" Foreground="#7DD3FC" />
+                                                    </Border>
+                                                    <TextBlock Text="{Binding DisplayTitle}" FontSize="12" Foreground="#F3F4F6" TextTrimming="CharacterEllipsis" />
+                                                </DockPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+
+                                    <!-- BỎ QUA VPN CHO TRANG HIỆN TẠI (OPERA PER-SITE BYPASS) -->
+                                    <Border Padding="9,7" CornerRadius="8" Background="#16161E" BorderBrush="#2C2C38" BorderThickness="1" Margin="0,0,0,10">
+                                        <DockPanel>
+                                            <ui:Button DockPanel.Dock="Right"
+                                                       Height="26" Padding="9,0" FontSize="11"
+                                                       Appearance="Secondary"
+                                                       Command="{Binding ToggleCurrentDomainVpnBypassCommand}">
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="Bỏ qua VPN" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCurrentDomainVpnBypassed}" Value="True">
+                                                                    <Setter Property="Text" Value="Đang bỏ qua ✓" />
+                                                                    <Setter Property="Foreground" Value="#F59E0B" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </ui:Button>
+                                            <StackPanel VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <TextBlock Text="Trang đang mở (Bypass theo trang)" FontSize="10" Foreground="#94A3B8" />
+                                                <TextBlock Text="{Binding CurrentTabDomain}" FontSize="12" FontWeight="SemiBold" Foreground="#F1F5F9" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+
+                                    <!-- ĐỊNH TUYẾN THEO TAB (PER-TAB ROUTING) -->
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="6" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:Button Grid.Column="0"
+                                                   Appearance="Secondary"
+                                                   HorizontalAlignment="Stretch"
+                                                   Height="29" Padding="6,0" FontSize="11"
+                                                   Command="{Binding TogglePerTabVpnCommand}"
+                                                   ToolTip="Bật/Tắt định tuyến VPN cô lập riêng cho Tab hiện tại">
+                                            <TextBlock Text="Bật/Tắt VPN Tab này" />
+                                        </ui:Button>
+                                        <ui:Button Grid.Column="2"
+                                                   Appearance="Secondary"
+                                                   HorizontalAlignment="Stretch"
+                                                   Height="29" Padding="6,0" FontSize="11"
+                                                   Command="{Binding OpenIsolatedVpnTabCommand}"
+                                                   ToolTip="Mở một Tab Ẩn danh mới có RequestContext cô lập đi qua VPN">
+                                            <TextBlock Text="+ Tab Ẩn danh VPN" />
+                                        </ui:Button>
+                                    </Grid>
+
+                                    <!-- CÔNG TẮC QUYỀN RIÊNG TƯ KIỂU OPERA VPN -->
+                                    <Border Padding="10,8" CornerRadius="8" Background="#16161E" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <CheckBox Content="Bỏ qua VPN cho công cụ tìm kiếm (Google/Bing)"
+                                                      IsChecked="{Binding BypassSearchEngines}"
+                                                      Foreground="#E5E7EB" FontSize="11" Margin="0,0,0,5"
+                                                      ToolTip="Tính năng Opera VPN: tránh CAPTCHA Google và giữ kết quả tìm kiếm theo vị trí địa phương" />
+                                            <CheckBox Content="Tự động bật VPN khi mở Thẻ Ẩn danh (Ctrl+Shift+N)"
+                                                      IsChecked="{Binding AutoVpnInIncognito}"
+                                                      Foreground="#E5E7EB" FontSize="11" Margin="0,0,0,5" />
+                                            <CheckBox Content="Split Tunneling (Đi thẳng tên miền .vn nội địa)"
+                                                      IsChecked="{Binding IsSplitTunnelingEnabled}"
+                                                      Foreground="#E5E7EB" FontSize="11" Margin="0,0,0,5" />
+                                            <CheckBox Content="Kill Switch &amp; Khóa WebRTC Leak (Chặn rò rỉ UDP)"
+                                                      IsChecked="{Binding IsKillSwitchEnabled}"
+                                                      Foreground="#E5E7EB" FontSize="11" Margin="0,0,0,5" />
+                                            <CheckBox Content="Double VPN (2 lớp: 1.1.1.1 WARP → Node khu vực)"
+                                                      IsChecked="{Binding IsDoubleVpnEnabled}"
+                                                      Foreground="#7DD3FC" FontSize="11"
+                                                      ToolTip="Lồng thêm lớp mã hóa Cloudflare WireGuard trước khi nối ra máy chủ VLESS/Shadowsocks/SOCKS5" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- CÔNG CỤ KIỂM TRA RÒ RỈ & QUẢN LÝ -->
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="5" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="5" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:Button Grid.Column="0"
+                                                   Content="🔍 Kiểm IP"
+                                                   Appearance="Secondary"
+                                                   HorizontalAlignment="Stretch"
+                                                   Height="27" Padding="4,0" FontSize="10.5"
+                                                   Command="{Binding CheckWarpTraceInTabCommand}"
+                                                   ToolTip="Kiểm tra warp=on và IP ảo tại 1.1.1.1/cdn-cgi/trace" />
+                                        <ui:Button Grid.Column="2"
+                                                   Content="🛡 WebRTC"
+                                                   Appearance="Secondary"
+                                                   HorizontalAlignment="Stretch"
+                                                   Height="27" Padding="4,0" FontSize="10.5"
+                                                   Command="{Binding OpenWebRtcLeakTestCommand}"
+                                                   ToolTip="Mở browserleaks.com/webrtc để xác nhận không rò rỉ IP thật" />
+                                        <ui:Button Grid.Column="4"
+                                                   Content="⚡ Cấp WARP"
+                                                   Appearance="Secondary"
+                                                   HorizontalAlignment="Stretch"
+                                                   Height="27" Padding="4,0" FontSize="10.5"
+                                                   Command="{Binding ProvisionCloudflareWarpCommand}"
+                                                   ToolTip="Đăng ký cặp khóa WireGuard Cloudflare 1.1.1.1 WARP mới" />
+                                    </Grid>
+
+                                    <ui:Button Content="⚙ Quản lý Máy chủ, Subscription &amp; Danh sách Bỏ qua"
+                                               Appearance="Transparent"
+                                               HorizontalAlignment="Stretch"
+                                               FontSize="11"
+                                               Command="{Binding OpenDrawerCommand}"
+                                               CommandParameter="Settings" />
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+
+                    <!-- 4. Nút Hồ sơ nhanh & Nút Menu 3 gạch (☰) Tùy chỉnh và điều khiển -->
+                    <Border Width="1" Height="18" Background="#32323D" Margin="8,0,4,0" VerticalAlignment="Center" />
+
+                    <ui:Button Width="30" Height="30" Padding="0" Appearance="Transparent"
+                               Command="{Binding MenuOpenSectionCommand}"
+                               CommandParameter="Settings"
+                               ToolTip="{Binding ActiveProfileLabel}">
+                        <ui:SymbolIcon Symbol="PersonCircle20" FontSize="17" Foreground="#D1D5DB" />
+                    </ui:Button>
+
+                    <ToggleButton x:Name="AppMenuToggle"
+                                  Width="32"
+                                  Height="30"
+                                  Margin="2,0,0,0"
+                                  Cursor="Hand"
+                                  IsChecked="{Binding IsAppMenuOpen, Mode=TwoWay}"
+                                  ToolTip="Tùy chỉnh và điều khiển QUANGLN Browser">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Foreground" Value="#E5E7EB" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border x:Name="MenuBtnBorder"
+                                                    CornerRadius="15"
+                                                    Background="{TemplateBinding Background}">
+                                                <ui:SymbolIcon Symbol="Navigation20"
+                                                               FontSize="16"
+                                                               Foreground="{TemplateBinding Foreground}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="MenuBtnBorder" Property="Background" Value="#2E2E3A" />
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="MenuBtnBorder" Property="Background" Value="#3A3A48" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+
+                    <!-- POPUP MENU TÙY CHỈNH VÀ ĐIỀU KHIỂN (☰) -->
+                    <Popup x:Name="AppMenuPopup"
+                           IsOpen="{Binding IsAppMenuOpen, Mode=TwoWay}"
+                           PlacementTarget="{Binding ElementName=AppMenuToggle}"
+                           Placement="Bottom"
+                           HorizontalOffset="-268"
+                           StaysOpen="False"
+                           AllowsTransparency="True">
+                        <Border Width="300"
+                                Padding="6,8"
+                                Margin="0,6,0,0"
+                                Background="#22222B"
+                                BorderBrush="#3A3A48"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                            <StackPanel>
+                                <!-- Nhóm 1: Thẻ & Cửa sổ -->
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding MenuNewTabCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="TabAdd20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Thẻ mới" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="Ctrl+T" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding NewWindowCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="WindowNew20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Cửa sổ mới" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="Ctrl+N" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding NewIncognitoTabCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="EyeOff20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Cửa sổ Ẩn danh mới" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="Ctrl+Shift+N" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding MenuNewVpnIncognitoTabCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="GlobeShield20" FontSize="15" Foreground="#10B981" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Cửa sổ Ẩn danh mới với 1.1.1.1 WARP" FontSize="12.5" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Separator Background="#343442" Margin="6,5" />
+
+                                <!-- Nhóm 2: Hồ sơ người dùng -->
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}"
+                                        Command="{Binding MenuOpenSectionCommand}"
+                                        CommandParameter="Settings">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="16" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="PersonCircle20" FontSize="16" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="QUANGLN của bạn" FontSize="12.5" VerticalAlignment="Center" />
+                                        <Border Grid.Column="2" Background="#1D3B2A" BorderBrush="#10B981" BorderThickness="1" CornerRadius="10" Padding="8,2" Margin="4,0">
+                                            <TextBlock Text="{Binding ActiveProfileLabel}" FontSize="10.5" FontWeight="SemiBold" Foreground="#34D399" />
+                                        </Border>
+                                        <TextBlock Grid.Column="3" Text="›" FontSize="14" Foreground="#9CA3AF" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Separator Background="#343442" Margin="6,5" />
+
+                                <!-- Nhóm 3: Mật khẩu, Nhật ký, Tệp tải về, Dấu trang, Thanh bên, Xóa dữ liệu -->
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding PanicLockCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Key20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Mật khẩu và khóa bảo mật Vault" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="›" FontSize="14" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}"
+                                        Command="{Binding MenuOpenSectionCommand}"
+                                        CommandParameter="History">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="History20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Nhật ký" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="›" FontSize="14" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}"
+                                        Command="{Binding MenuOpenSectionCommand}"
+                                        CommandParameter="Downloads">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="ArrowDownload20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Tệp đã tải về" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="Ctrl+J" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}"
+                                        Command="{Binding MenuOpenSectionCommand}"
+                                        CommandParameter="Bookmarks">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Star20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Dấu trang và danh sách" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="›" FontSize="14" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding ToggleLeftSidebarCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="PanelLeft20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="{Binding LeftSidebarMenuText}" FontSize="12.5" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding ClearBrowsingDataCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Delete20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Xóa dữ liệu duyệt web..." FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="Ctrl+Shift+Del" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Separator Background="#343442" Margin="6,5" />
+
+                                <!-- Nhóm 4: Thu phóng (Zoom - 100% + Fullscreen) -->
+                                <Border Height="34" Padding="12,0" Margin="2,1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="ZoomIn20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="Thu phóng" FontSize="12.5" Foreground="#E5E7EB" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ui:Button Width="26" Height="26" Padding="0" Appearance="Secondary"
+                                                       Command="{Binding ZoomOutCommand}" ToolTip="Thu nhỏ">
+                                                <TextBlock Text="−" FontSize="14" FontWeight="Bold" />
+                                            </ui:Button>
+                                            <TextBlock Text="{Binding ZoomPercentDisplay}"
+                                                       Width="46"
+                                                       FontSize="12"
+                                                       Foreground="#F3F4F6"
+                                                       TextAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                            <ui:Button Width="26" Height="26" Padding="0" Appearance="Secondary"
+                                                       Command="{Binding ZoomInCommand}" ToolTip="Phóng to">
+                                                <TextBlock Text="+" FontSize="14" FontWeight="Bold" />
+                                            </ui:Button>
+                                            <ui:Button Width="28" Height="26" Padding="0" Margin="6,0,0,0" Appearance="Secondary"
+                                                       Click="OnToggleWindowFullscreenClicked" ToolTip="Toàn màn hình (F11)">
+                                                <ui:SymbolIcon Symbol="FullScreenMaximize16" FontSize="13" />
+                                            </ui:Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Separator Background="#343442" Margin="6,5" />
+
+                                <!-- Nhóm 5: In, Dịch, Tìm và chỉnh sửa, Lưu và chia sẻ, Công cụ khác -->
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding PrintPageCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Print20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="In..." FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="Ctrl+P" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding TranslatePageCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="LocalLanguage20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Dịch..." FontSize="12.5" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding ToggleFindBarCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Search20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Tìm và chỉnh sửa" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="›" FontSize="14" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding SavePageAsCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Save20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Truyền, lưu và chia sẻ" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="›" FontSize="14" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding OpenDevToolsCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="DeveloperBoard20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Công cụ khác (DevTools)" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="F12" FontSize="11" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Separator Background="#343442" Margin="6,5" />
+
+                                <!-- Nhóm 6: Trợ giúp, Cài đặt, Thoát -->
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}"
+                                        Command="{Binding MenuOpenSectionCommand}"
+                                        CommandParameter="Settings">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="QuestionCircle20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Trợ giúp" FontSize="12.5" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="›" FontSize="14" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}"
+                                        Command="{Binding MenuOpenSectionCommand}"
+                                        CommandParameter="Settings">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Settings20" FontSize="15" Foreground="#D1D5DB" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Cài đặt" FontSize="12.5" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+
+                                <Button Style="{StaticResource AppMenuRowButtonStyle}" Command="{Binding ExitApplicationCommand}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:SymbolIcon Grid.Column="0" Symbol="Power20" FontSize="15" Foreground="#F43F5E" HorizontalAlignment="Left" />
+                                        <TextBlock Grid.Column="1" Text="Thoát" FontSize="12.5" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ROW 2: Left Sidebar Rail + ChromiumWebBrowser + Right Side Drawer -->
+        <Grid Grid.Row="2"
+              Visibility="{Binding IsLocked, Converter={StaticResource InvBoolToVis}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Sidebar Rail (54px Opera GX Neon Style, hỗ trợ Ẩn/Hiện & Tùy biến từ Cài đặt) -->
+            <Border Grid.Column="0"
+                    Width="54"
+                    Background="{DynamicResource BrowserChromeBrush}"
+                    BorderBrush="{DynamicResource BrowserBorderBrush}"
+                    BorderThickness="0,0,1,0"
+                    Padding="0,10,0,10"
+                    Visibility="{Binding IsLeftSidebarVisible, Converter={StaticResource BoolToVis}}">
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Top">
+                        <!-- Trang chủ (có nền Accent nhẹ đặc trưng) -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding GoHomeCommand}"
+                                Background="{DynamicResource ThemeAccentSoftBrush}"
+                                BorderBrush="{DynamicResource ThemeAccentBorderBrush}"
+                                ToolTip="Trang chủ QUANGLN">
+                            <ui:SymbolIcon Symbol="Home24" FontSize="18" Foreground="{DynamicResource ThemeAccentBrush}" />
+                        </Button>
+
+                        <!-- Dấu trang -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenDrawerCommand}"
+                                CommandParameter="Bookmarks"
+                                Visibility="{Binding SidebarShowBookmarks, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Dấu trang (Bookmarks)">
+                            <ui:SymbolIcon Symbol="Bookmark24" FontSize="18" Foreground="#CBD5E1" />
+                        </Button>
+
+                        <!-- Lịch sử -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenDrawerCommand}"
+                                CommandParameter="History"
+                                Visibility="{Binding SidebarShowHistory, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Lịch sử duyệt web">
+                            <ui:SymbolIcon Symbol="History24" FontSize="18" Foreground="#CBD5E1" />
+                        </Button>
+
+                        <!-- Quản lý tải xuống -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenDrawerCommand}"
+                                CommandParameter="Downloads"
+                                Visibility="{Binding SidebarShowDownloads, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Quản lý tải xuống (Đa luồng 8x)">
+                            <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="18" Foreground="#F59E0B" />
+                        </Button>
+
+                        <!-- QUANGLN Player — Trình phát Video AI Vietsub & AI Lồng tiếng -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenStandalonePlayerCommand}"
+                                ToolTip="QUANGLN Player — Trình phát Video AI Vietsub &amp; AI Lồng tiếng">
+                            <ui:SymbolIcon Symbol="VideoClip24" FontSize="18" Foreground="{DynamicResource ThemeAccentBrush}" />
+                        </Button>
+
+                        <!-- Trợ lý AI & Tóm tắt -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding SummarizePageWithAiCommand}"
+                                Visibility="{Binding SidebarShowAiChat, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Hỏi AI &amp; Tóm tắt trang này">
+                            <ui:SymbolIcon Symbol="Sparkle24" FontSize="18" Foreground="{DynamicResource ThemeAccentBrush}" />
+                        </Button>
+
+                        <!-- Đường phân cách tinh tế -->
+                        <Border Height="1.5" Width="22" CornerRadius="1" Background="{DynamicResource BrowserBorderBrush}" Margin="0,8" Opacity="0.85" />
+
+                        <!-- Ứng dụng nhắn tin ghim trên Thanh bên (Icon vector trên nền tối sang trọng) -->
+                        <!-- Zalo -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenSidebarWebAppCommand}"
+                                CommandParameter="zalo"
+                                Visibility="{Binding SidebarShowZalo, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Zalo Web">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#12243B" BorderBrush="#244775" BorderThickness="1">
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Viewbox Width="16" Height="16">
+                                        <Canvas Width="24" Height="24">
+                                            <Path Fill="#38A1FF"
+                                                  Data="M12 2.5C6.48 2.5 2 6.3 2 11c0 2.53 1.3 4.81 3.37 6.37-.18 1.24-.7 2.4-1.48 3.24-.17.18-.02.48.23.43 1.75-.36 3.35-1.1 4.5-1.94 1.06.26 2.2.4 3.38.4 5.52 0 10-3.8 10-8.5S17.52 2.5 12 2.5z" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Z" FontSize="9.5" FontWeight="ExtraBold" Foreground="#0B1626" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                </Grid>
+                            </Border>
+                        </Button>
+
+                        <!-- Messenger -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenSidebarWebAppCommand}"
+                                CommandParameter="messenger"
+                                Visibility="{Binding SidebarShowMessenger, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Facebook Messenger">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#211636" BorderBrush="#44296E" BorderThickness="1">
+                                <Viewbox Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Fill="#C084FC"
+                                              Data="M12 2C6.48 2 2 6.15 2 11.27c0 2.91 1.45 5.5 3.72 7.21V22l3.4-1.87c.9.25 1.87.39 2.88.39 5.52 0 10-4.15 10-9.25S17.52 2 12 2z" />
+                                        <Path Fill="#181028"
+                                              Data="M13.06 14.32l-2.55-2.72-4.97 2.72 5.47-5.8 2.61 2.72 4.91-2.72-5.47 5.8z" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Border>
+                        </Button>
+
+                        <!-- Discord -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenSidebarWebAppCommand}"
+                                CommandParameter="discord"
+                                Visibility="{Binding SidebarShowDiscord, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Discord">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#191E3A" BorderBrush="#313B73" BorderThickness="1">
+                                <Viewbox Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Fill="#818CF8"
+                                              Data="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Border>
+                        </Button>
+
+                        <!-- Telegram -->
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenSidebarWebAppCommand}"
+                                CommandParameter="telegram"
+                                Visibility="{Binding SidebarShowTelegram, Converter={StaticResource BoolToVis}}"
+                                ToolTip="Telegram Web">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="#122638" BorderBrush="#214B6E" BorderThickness="1">
+                                <Viewbox Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-1,0,0,0">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Fill="#38BDF8"
+                                              Data="M21.9 4.2c.3-.9-.5-1.7-1.4-1.3L2.8 9.8c-1 .4-.9 1.8.1 2.1l4.4 1.4 1.7 5.3c.2.7 1.1.9 1.6.4l2.5-2.5 4.8 3.5c.8.6 1.9.1 2.1-.8L21.9 4.2zM9.2 13.4l8.3-5.8c.2-.1.4.2.2.3l-6.8 6.4-.3 3.1-1.4-4z" />
+                                    </Canvas>
+                                </Viewbox>
+                            </Border>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <Border Height="1.5" Width="22" CornerRadius="1" Background="{DynamicResource BrowserBorderBrush}" Margin="0,0,0,8" Opacity="0.85" />
+
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding OpenSettingsPageCommand}"
+                                ToolTip="Cài đặt trình duyệt">
+                            <ui:SymbolIcon Symbol="Settings24" FontSize="18" Foreground="#94A3B8" />
+                        </Button>
+
+                        <Button Style="{StaticResource SidebarIconButtonStyle}"
+                                Command="{Binding PanicLockCommand}"
+                                Background="#24121A"
+                                BorderBrush="#4A1D2E"
+                                ToolTip="Khóa khẩn cấp (Ctrl+Shift+L)">
+                            <ui:SymbolIcon Symbol="LockClosed24" FontSize="17" Foreground="{StaticResource PanicLockBrush}" />
+                        </Button>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Vùng hiển thị ChromiumWebBrowser của ActiveTab + Chế độ xem phân tách (Split View) + Thanh tìm kiếm (Ctrl+F) -->
+            <!-- Nền #FFFFFF mặc định giúp các trang text/plain như 1.1.1.1/cdn-cgi/trace luôn rõ chữ thay vì đen trên nền tối -->
+            <Grid x:Name="BrowserHostGrid" Grid.Column="1" Background="#FFFFFF">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition>
+                            <ColumnDefinition.Style>
+                                <Style TargetType="ColumnDefinition">
+                                    <Setter Property="Width" Value="0" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSplitViewOpen}" Value="True">
+                                            <Setter Property="Width" Value="*" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ColumnDefinition.Style>
+                        </ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Trang chính (ChromiumWebBrowser hoặc Trang Cài đặt đầy đủ kiểu Cốc Cốc quangln://settings) -->
+                    <ContentControl Grid.Column="0"
+                                    Content="{Binding ActiveTab.Browser}"
+                                    Visibility="{Binding ActiveTab.IsSettingsTab, Converter={StaticResource InvBoolToVis}, FallbackValue=Visible}"
+                                    Focusable="False" />
+
+                    <views:SettingsPageView Grid.Column="0"
+                                            Visibility="{Binding ActiveTab.IsSettingsTab, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" />
+
+                    <!-- Thanh kéo thay đổi tỷ lệ Split View -->
+                    <GridSplitter Grid.Column="1"
+                                  Width="4"
+                                  Background="#2E2E3B"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Stretch"
+                                  Visibility="{Binding IsSplitViewOpen, Converter={StaticResource BoolToVis}}" />
+
+                    <!-- Khung xem phân tách bên phải (Mở liên kết ở chế độ xem phân tách) -->
+                    <Grid Grid.Column="2"
+                          Background="#FFFFFF"
+                          Visibility="{Binding IsSplitViewOpen, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="32" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0"
+                                Background="{DynamicResource BrowserChromeBrush}"
+                                BorderBrush="{DynamicResource BrowserBorderBrush}"
+                                BorderThickness="0,0,0,1"
+                                Padding="10,0,6,0">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <ui:Button Width="24" Height="24" Padding="0" Margin="0,0,2,0"
+                                               Appearance="Transparent"
+                                               Command="{Binding PromoteSplitViewToTabCommand}"
+                                               ToolTip="Chuyển sang thẻ riêng">
+                                        <ui:SymbolIcon Symbol="Open16" FontSize="12" Foreground="#CBD5E1" />
+                                    </ui:Button>
+                                    <ui:Button Width="24" Height="24" Padding="0"
+                                               Appearance="Transparent"
+                                               Command="{Binding CloseSplitViewCommand}"
+                                               ToolTip="Đóng chế độ xem phân tách">
+                                        <ui:SymbolIcon Symbol="Dismiss16" FontSize="11" Foreground="#CBD5E1" />
+                                    </ui:Button>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <ui:SymbolIcon Symbol="SplitVertical16" FontSize="13" Foreground="#38BDF8" Margin="0,0,6,0" />
+                                    <TextBlock Text="{Binding SplitViewTab.Title, FallbackValue='Xem phân tách'}"
+                                               FontSize="11.5" FontWeight="SemiBold" Foreground="#E5E7EB"
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" MaxWidth="220" />
+                                    <TextBlock Text=" — " FontSize="11" Foreground="#6B7280" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding SplitViewTab.Address}"
+                                               FontSize="11" Foreground="#9CA3AF"
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <ContentControl Grid.Row="1"
+                                        Content="{Binding SplitViewTab.Browser}"
+                                        Focusable="False" />
+                    </Grid>
+                </Grid>
+
+                <!-- Thanh Tìm trên trang (Ctrl+F) nổi ở góc trên bên phải -->
+                <Border HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,8,16,0"
+                        Padding="10,6"
+                        CornerRadius="8"
+                        Background="#F223232D"
+                        BorderBrush="#3B3B4A"
+                        BorderThickness="1"
+                        Visibility="{Binding IsFindBarVisible, Converter={StaticResource BoolToVis}}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:TextBox x:Name="FindInputBox"
+                                    Width="200"
+                                    Height="28"
+                                    FontSize="12"
+                                    PlaceholderText="Tìm trên trang..."
+                                    Text="{Binding FindQueryText, UpdateSourceTrigger=PropertyChanged}"
+                                    KeyDown="OnFindBoxKeyDown" />
+                        <ui:Button Width="26" Height="26" Padding="0" Margin="6,0,2,0"
+                                   Appearance="Secondary"
+                                   Command="{Binding FindPreviousCommand}"
+                                   ToolTip="Kết quả trước">
+                            <ui:SymbolIcon Symbol="ChevronUp16" FontSize="12" />
+                        </ui:Button>
+                        <ui:Button Width="26" Height="26" Padding="0" Margin="0,0,4,0"
+                                   Appearance="Secondary"
+                                   Command="{Binding FindNextCommand}"
+                                   ToolTip="Kết quả tiếp theo">
+                            <ui:SymbolIcon Symbol="ChevronDown16" FontSize="12" />
+                        </ui:Button>
+                        <ui:Button Width="26" Height="26" Padding="0"
+                                   Appearance="Transparent"
+                                   Command="{Binding CloseFindBarCommand}"
+                                   ToolTip="Đóng (Esc)">
+                            <ui:SymbolIcon Symbol="Dismiss16" FontSize="11" />
+                        </ui:Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Side Drawer trượt phải (340px) -->
+            <Border Grid.Column="2"
+                    Width="340"
+                    Background="{DynamicResource BrowserChromeBrush}"
+                    BorderBrush="{DynamicResource ThemeAccentBorderBrush}"
+                    BorderThickness="1,0,0,0"
+                    Visibility="{Binding IsDrawerOpen, Converter={StaticResource BoolToVis}}">
+                <Grid Margin="14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="{Binding ActiveDrawerSection}"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#F9FAFB"
+                                   VerticalAlignment="Center" />
+                        <ui:Button DockPanel.Dock="Right"
+                                   HorizontalAlignment="Right"
+                                   Width="28" Height="28" Padding="0"
+                                   Appearance="Transparent"
+                                   Command="{Binding CloseDrawerCommand}">
+                            <ui:SymbolIcon Symbol="Dismiss16" />
+                        </ui:Button>
+                    </DockPanel>
+
+                    <!-- Bookmarks Panel -->
+                    <ScrollViewer Grid.Row="1"
+                                  Visibility="{Binding ActiveDrawerSection, Converter={StaticResource StrEqToVis}, ConverterParameter=Bookmarks}">
+                        <ItemsControl ItemsSource="{Binding BookmarkItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,6" Padding="10,8" CornerRadius="8"
+                                            Background="{DynamicResource BrowserElevatedBrush}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Cursor="Hand">
+                                                <StackPanel.InputBindings>
+                                                    <MouseBinding MouseAction="LeftClick"
+                                                                  Command="{Binding DataContext.OpenBookmarkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                  CommandParameter="{Binding}" />
+                                                </StackPanel.InputBindings>
+                                                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Medium"
+                                                           Foreground="#F3F4F6" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Url}" FontSize="11"
+                                                           Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <ui:Button Grid.Column="1" Width="26" Height="26" Padding="0" Appearance="Transparent"
+                                                       Command="{Binding DataContext.RemoveBookmarkCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                       CommandParameter="{Binding}">
+                                                <ui:SymbolIcon Symbol="Delete16" FontSize="13" />
+                                            </ui:Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- History Panel -->
+                    <Grid Grid.Row="1"
+                          Visibility="{Binding ActiveDrawerSection, Converter={StaticResource StrEqToVis}, ConverterParameter=History}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <ui:Button Grid.Row="0" Content="Xóa toàn bộ lịch sử"
+                                   Appearance="Secondary" HorizontalAlignment="Stretch" Margin="0,0,0,10"
+                                   Command="{Binding ClearHistoryCommand}" />
+                        <ScrollViewer Grid.Row="1">
+                            <ItemsControl ItemsSource="{Binding HistoryItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,6" Padding="10,8" CornerRadius="8"
+                                                Background="{DynamicResource BrowserElevatedBrush}" Cursor="Hand">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding DataContext.OpenHistoryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}" />
+                                            </Border.InputBindings>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Medium"
+                                                           Foreground="#F3F4F6" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Url}" FontSize="11"
+                                                           Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Downloads Panel (Multi-thread 8 luồng / FFmpeg / yt-dlp) -->
+                    <ScrollViewer Grid.Row="1"
+                                  Visibility="{Binding ActiveDrawerSection, Converter={StaticResource StrEqToVis}, ConverterParameter=Downloads}">
+                        <ItemsControl ItemsSource="{Binding DownloadItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,8" Padding="10,8" CornerRadius="8"
+                                            Background="{DynamicResource BrowserElevatedBrush}">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FileName}"
+                                                       FontSize="13" FontWeight="SemiBold" Foreground="#F3F4F6"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <DockPanel Margin="0,2,0,4">
+                                                <TextBlock Text="{Binding StatusLabel}" FontSize="11" Foreground="#38BDF8" />
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding ProgressSummary}"
+                                                           FontSize="11" Foreground="#9CA3AF" HorizontalAlignment="Right" />
+                                            </DockPanel>
+                                            <ProgressBar Minimum="0"
+                                                         Maximum="100"
+                                                         Value="{Binding ProgressPercent, Mode=OneWay}"
+                                                         Height="6"
+                                                         Margin="0,2,0,8" />
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <ui:Button Content="Tạm dừng"
+                                                           Height="26" Padding="8,0" Margin="0,0,4,0" FontSize="11"
+                                                           Visibility="{Binding CanPause, Converter={StaticResource BoolToVis}}"
+                                                           Command="{Binding DataContext.PauseDownloadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           CommandParameter="{Binding}" />
+                                                <ui:Button Content="Tiếp tục"
+                                                           Height="26" Padding="8,0" Margin="0,0,4,0" FontSize="11"
+                                                           Appearance="Primary"
+                                                           Visibility="{Binding CanResume, Converter={StaticResource BoolToVis}}"
+                                                           Command="{Binding DataContext.ResumeDownloadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           CommandParameter="{Binding}" />
+                                                <ui:Button Content="Phát (libmpv)"
+                                                           Height="26" Padding="8,0" Margin="0,0,4,0" FontSize="11"
+                                                           Appearance="Primary"
+                                                           Visibility="{Binding IsCompleted, Converter={StaticResource BoolToVis}}"
+                                                           Command="{Binding DataContext.PlayDownloadedFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           CommandParameter="{Binding}" />
+                                                <ui:Button Width="26" Height="26" Padding="0" Margin="0,0,4,0"
+                                                           Appearance="Secondary"
+                                                           ToolTip="Mở thư mục chứa file"
+                                                           Command="{Binding DataContext.OpenDownloadFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           CommandParameter="{Binding}">
+                                                    <ui:SymbolIcon Symbol="FolderOpen16" FontSize="13" />
+                                                </ui:Button>
+                                                <ui:Button Width="26" Height="26" Padding="0"
+                                                           Appearance="Transparent"
+                                                           ToolTip="Hủy / Xóa"
+                                                           Command="{Binding DataContext.CancelDownloadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           CommandParameter="{Binding}">
+                                                    <ui:SymbolIcon Symbol="Delete16" FontSize="13" />
+                                                </ui:Button>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- AI Assistant & Tóm tắt trang Panel -->
+                    <ScrollViewer Grid.Row="1"
+                                  Visibility="{Binding ActiveDrawerSection, Converter={StaticResource StrEqToVis}, ConverterParameter=AI}">
+                        <StackPanel>
+                            <Border Padding="12" CornerRadius="10" Background="{DynamicResource BrowserElevatedBrush}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <ui:SymbolIcon Symbol="Sparkle20" FontSize="15" Foreground="#34D399" Margin="0,0,6,0" />
+                                        <TextBlock Text="{Binding AiSummaryTitle}"
+                                                   FontSize="13.5" FontWeight="SemiBold" Foreground="#F9FAFB"
+                                                   TextWrapping="Wrap" MaxWidth="265" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding AiSummaryMeta}"
+                                               FontSize="11" Foreground="#38BDF8" Margin="0,0,0,4" />
+                                    <TextBlock Text="{Binding AiSummaryUrl}"
+                                               FontSize="10.5" Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Border>
+
+                            <ui:ProgressRing Width="26" Height="26" IsIndeterminate="True"
+                                             HorizontalAlignment="Center" Margin="0,8,0,12"
+                                             Visibility="{Binding IsSummarizingPage, Converter={StaticResource BoolToVis}}" />
+
+                            <Border Padding="12" CornerRadius="10" Background="{DynamicResource BrowserElevatedBrush}" Margin="0,0,0,10">
+                                <TextBlock Text="{Binding AiSummaryContent}"
+                                           FontSize="12.5"
+                                           Foreground="#E5E7EB"
+                                           LineHeight="20"
+                                           TextWrapping="Wrap" />
+                            </Border>
+
+                            <TextBlock Text="{Binding AiStatusBanner}"
+                                       FontSize="11" Foreground="#34D399" TextWrapping="Wrap" Margin="2,0,2,8" />
+
+                            <ui:Button Content="⚡ Tóm tắt lại trang hiện tại"
+                                       Appearance="Primary"
+                                       HorizontalAlignment="Stretch"
+                                       Height="32" FontSize="12" Margin="0,0,0,6"
+                                       Command="{Binding SummarizePageWithAiCommand}" />
+
+                            <ui:Button Content="🌐 Dịch trang này sang tiếng Việt"
+                                       Appearance="Secondary"
+                                       HorizontalAlignment="Stretch"
+                                       Height="30" FontSize="12" Margin="0,0,0,6"
+                                       Command="{Binding TranslatePageCommand}" />
+
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="6" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ui:Button Grid.Column="0"
+                                           Content="✨ Hỏi Gemini"
+                                           Appearance="Secondary"
+                                           HorizontalAlignment="Stretch"
+                                           Height="30" FontSize="11.5"
+                                           Command="{Binding AskGeminiWithPageCommand}" />
+                                <ui:Button Grid.Column="2"
+                                           Content="💬 Hỏi ChatGPT"
+                                           Appearance="Secondary"
+                                           HorizontalAlignment="Stretch"
+                                           Height="30" FontSize="11.5"
+                                           Command="{Binding AskChatGptWithPageCommand}" />
+                            </Grid>
+
+                            <ui:Button Content="📋 Sao chép bản tóm tắt"
+                                       Appearance="Transparent"
+                                       HorizontalAlignment="Stretch"
+                                       Height="28" FontSize="11.5"
+                                       Command="{Binding CopyAiSummaryCommand}" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Settings & VPN Nodes Manager Panel -->
+                    <ScrollViewer Grid.Row="1"
+                                  Visibility="{Binding ActiveDrawerSection, Converter={StaticResource StrEqToVis}, ConverterParameter=Settings}">
+                        <StackPanel>
+                            <!-- Chọn Chủ đề màu Neon toàn trình duyệt -->
+                            <Border Padding="12" CornerRadius="8" Background="{DynamicResource BrowserElevatedBrush}" BorderBrush="{DynamicResource BrowserBorderBrush}" BorderThickness="1" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <TextBlock Text="Chủ đề màu toàn giao diện" FontSize="13" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedThemeDisplayName}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemeAccentBrush}" HorizontalAlignment="Right" />
+                                    </DockPanel>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="6" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="6" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <ui:Button Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Appearance="Secondary" Height="34" Padding="8,0"
+                                                   Command="{Binding SelectThemeCommand}" CommandParameter="coccoc">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="10" Height="10" Fill="#00E676" Margin="0,0,6,0" />
+                                                <TextBlock Text="Cốc Cốc Neon" FontSize="11.5" />
+                                            </StackPanel>
+                                        </ui:Button>
+
+                                        <ui:Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Appearance="Secondary" Height="34" Padding="8,0"
+                                                   Command="{Binding SelectThemeCommand}" CommandParameter="crimson">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="10" Height="10" Fill="#FA1E4E" Margin="0,0,6,0" />
+                                                <TextBlock Text="GX Crimson" FontSize="11.5" />
+                                            </StackPanel>
+                                        </ui:Button>
+
+                                        <ui:Button Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" Appearance="Secondary" Height="34" Padding="8,0"
+                                                   Command="{Binding SelectThemeCommand}" CommandParameter="cyan">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="10" Height="10" Fill="#00E5FF" Margin="0,0,6,0" />
+                                                <TextBlock Text="Cyber Cyan" FontSize="11.5" />
+                                            </StackPanel>
+                                        </ui:Button>
+
+                                        <ui:Button Grid.Row="2" Grid.Column="2" HorizontalAlignment="Stretch" Appearance="Secondary" Height="34" Padding="8,0"
+                                                   Command="{Binding SelectThemeCommand}" CommandParameter="purple">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="10" Height="10" Fill="#B517FF" Margin="0,0,6,0" />
+                                                <TextBlock Text="Quantum Purple" FontSize="11.5" />
+                                            </StackPanel>
+                                        </ui:Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Padding="12" CornerRadius="8" Background="{DynamicResource BrowserElevatedBrush}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Hồ sơ đang hoạt động" FontSize="12" Foreground="#9CA3AF" />
+                                    <TextBlock Text="{Binding ActiveProfileLabel}" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="#F9FAFB" Margin="0,4,0,10" />
+                                    <TextBlock Text="Tự động khóa khi nhàn rỗi" FontSize="12" Foreground="#9CA3AF" />
+                                    <TextBlock Text="{Binding AutoLockMinutes, StringFormat={}{0} phút}" FontSize="14"
+                                               Foreground="#E5E7EB" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Thêm mới VPN Node (WireGuard / VLESS / Shadowsocks / SOCKS5 / HTTP) -->
+                            <Border Padding="12" CornerRadius="8" Background="{DynamicResource BrowserElevatedBrush}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Thêm VPN Node mới (sing-box)" FontSize="13" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="0,0,0,8" />
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="8" />
+                                            <ColumnDefinition Width="64" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:TextBox Grid.Column="0"
+                                                    PlaceholderText="Tên Node (tùy chọn)..."
+                                                    Text="{Binding NewVpnNodeName, UpdateSourceTrigger=PropertyChanged}"
+                                                    FontSize="12" />
+                                        <ui:TextBox Grid.Column="2"
+                                                    PlaceholderText="Tự nhận"
+                                                    Text="{Binding NewVpnNodeCountry, UpdateSourceTrigger=PropertyChanged}"
+                                                    FontSize="12" />
+                                    </Grid>
+                                    <ui:TextBox PlaceholderText="vless://, ss://, socks5://, http:// hoặc JSON..."
+                                                Text="{Binding NewVpnNodeInput, UpdateSourceTrigger=PropertyChanged}"
+                                                FontSize="12"
+                                                Margin="0,0,0,8" />
+                                    <ui:Button Content="+ Lưu VPN Node vào Vault"
+                                               Appearance="Primary"
+                                               HorizontalAlignment="Stretch"
+                                               FontSize="12"
+                                               Command="{Binding AddVpnNodeCommand}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Nhập hàng loạt nhiều khu vực Châu Á / Châu Âu / Châu Mỹ (Base64 Subscription / Nhiều dòng) -->
+                            <Border Padding="12" CornerRadius="8" Background="{DynamicResource BrowserElevatedBrush}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Nhập hàng loạt / Subscription (Base64)" FontSize="13" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="0,0,0,4" />
+                                    <TextBlock Text="Dán nhiều link (vless://, ss://, socks5://) hoặc chuỗi Base64 để tự phân vùng Châu Á / Châu Âu / Châu Mỹ."
+                                               FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                    <ui:TextBox PlaceholderText="Dán danh sách link hoặc Base64 Subscription..."
+                                                Text="{Binding VpnSubscriptionInput, UpdateSourceTrigger=PropertyChanged}"
+                                                AcceptsReturn="True"
+                                                TextWrapping="Wrap"
+                                                Height="64"
+                                                VerticalContentAlignment="Top"
+                                                FontSize="11.5"
+                                                Margin="0,0,0,8" />
+                                    <ui:Button Content="⚡ Nhập &amp; Tự phân vùng máy chủ"
+                                               Appearance="Secondary"
+                                               HorizontalAlignment="Stretch"
+                                               FontSize="12"
+                                               Command="{Binding ImportVpnSubscriptionCommand}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Danh sách tên miền Bỏ qua VPN (Opera VPN Bypass List) -->
+                            <Border Padding="12" CornerRadius="8" Background="{DynamicResource BrowserElevatedBrush}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Danh sách Bỏ qua VPN (Per-Site Bypass)" FontSize="13" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="0,0,0,4" />
+                                    <TextBlock Text="Các trang này luôn đi trực tiếp, không qua đường hầm VPN (lưu mã hóa trong Vault)."
+                                               FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="6" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ui:TextBox Grid.Column="0"
+                                                    PlaceholderText="VD: vietcombank.com.vn"
+                                                    Text="{Binding NewVpnBypassDomainInput, UpdateSourceTrigger=PropertyChanged}"
+                                                    FontSize="12" />
+                                        <ui:Button Grid.Column="2"
+                                                   Content="+ Thêm"
+                                                   Appearance="Secondary"
+                                                   Height="32" Padding="10,0" FontSize="11.5"
+                                                   Command="{Binding AddVpnBypassDomainCommand}" />
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding VpnBypassDomains}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,0,4" Padding="8,5" CornerRadius="6" Background="{DynamicResource BrowserChromeBrush}">
+                                                    <DockPanel>
+                                                        <ui:Button DockPanel.Dock="Right" Width="22" Height="22" Padding="0" Appearance="Transparent"
+                                                                   Command="{Binding DataContext.RemoveVpnBypassDomainCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                   CommandParameter="{Binding}">
+                                                            <ui:SymbolIcon Symbol="Dismiss16" FontSize="11" Foreground="#9CA3AF" />
+                                                        </ui:Button>
+                                                        <TextBlock Text="{Binding}" FontSize="11.5" Foreground="#E5E7EB" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Danh sách VPN Nodes đã lưu trong vault.db -->
+                            <DockPanel Margin="0,0,0,6">
+                                <TextBlock Text="Danh sách VPN Node" FontSize="13" FontWeight="SemiBold" Foreground="#F9FAFB" VerticalAlignment="Center" />
+                                <ui:Button DockPanel.Dock="Right"
+                                           Content="Đo Ping tất cả"
+                                           Height="24" Padding="8,0" FontSize="11"
+                                           Appearance="Secondary"
+                                           HorizontalAlignment="Right"
+                                           Command="{Binding PingAllVpnNodesCommand}" />
+                            </DockPanel>
+                            <ItemsControl ItemsSource="{Binding VpnNodes}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,6" Padding="10,8" CornerRadius="8"
+                                                Background="{DynamicResource BrowserElevatedBrush}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <DockPanel>
+                                                        <Border Background="#2210B981" CornerRadius="4" Padding="5,1" Margin="0,0,5,0">
+                                                            <TextBlock Text="{Binding DisplayProtocol}" FontSize="10" FontWeight="Bold" Foreground="#10B981" />
+                                                        </Border>
+                                                        <Border Background="#2238BDF8" CornerRadius="4" Padding="5,1" Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding RegionLabel}" FontSize="10" Foreground="#7DD3FC" />
+                                                        </Border>
+                                                        <TextBlock Text="{Binding DisplayTitle}" FontSize="12" FontWeight="SemiBold"
+                                                                   Foreground="#F3F4F6" TextTrimming="CharacterEllipsis" />
+                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding DisplayLatency, StringFormat=Độ trễ: {0}}"
+                                                               FontSize="11" Foreground="#9CA3AF" Margin="0,3,0,0" />
+                                                </StackPanel>
+                                                <ui:Button Grid.Column="1" Width="26" Height="26" Padding="0"
+                                                           Appearance="Transparent"
+                                                           Command="{Binding DataContext.DeleteVpnNodeCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           CommandParameter="{Binding}">
+                                                    <ui:SymbolIcon Symbol="Delete16" FontSize="13" />
+                                                </ui:Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- OVERLAY LAYER: LockScreenView (Panel.ZIndex="999") -->
+        <views:LockScreenView Grid.Row="0"
+                              Grid.RowSpan="3"
+                              Panel.ZIndex="999"
+                              DataContext="{Binding LockScreen}"
+                              Visibility="{Binding DataContext.IsLocked, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}" />
+    </Grid>
+</ui:FluentWindow>

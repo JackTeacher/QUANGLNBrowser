@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- TargetFramework và PlatformTarget kế thừa từ Directory.Build.props -->
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QUANGLNBrowser.Core\QUANGLNBrowser.Core.csproj" />
+    <ProjectReference Include="..\QUANGLNBrowser.Network\QUANGLNBrowser.Network.csproj" />
+  </ItemGroup>
+</Project>

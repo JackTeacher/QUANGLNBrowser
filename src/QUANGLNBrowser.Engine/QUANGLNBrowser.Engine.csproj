@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- TargetFramework và PlatformTarget kế thừa từ Directory.Build.props -->
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QUANGLNBrowser.Core\QUANGLNBrowser.Core.csproj" />
+    <ProjectReference Include="..\QUANGLNBrowser.Network\QUANGLNBrowser.Network.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4370.26" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\video-overlay.js" />
+    <None Include="Resources\video-overlay.js" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="Resources\hls.light.min.js" />
+    <None Include="Resources\hls.light.min.js" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- TargetFramework và PlatformTarget kế thừa từ Directory.Build.props -->
+  <ItemGroup>
+    <ProjectReference Include="..\QUANGLNBrowser.Core\QUANGLNBrowser.Core.csproj" />
+  </ItemGroup>
+</Project>

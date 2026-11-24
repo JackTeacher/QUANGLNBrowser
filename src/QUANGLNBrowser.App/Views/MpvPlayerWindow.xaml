@@ -1,0 +1,43 @@
+<Window x:Class="QUANGLNBrowser.App.Views.MpvPlayerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:media="clr-namespace:QUANGLNBrowser.Media;assembly=QUANGLNBrowser.Media"
+        Title="QUANGLN Player — Trình phát Video AI Vietsub &amp; AI Lồng tiếng"
+        Icon="pack://application:,,,/Assets/app.ico"
+        Width="1280"
+        Height="760"
+        MinWidth="760"
+        MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        AllowsTransparency="False"
+        AllowDrop="True"
+        Background="#090C10"
+        BorderBrush="#1F2A37"
+        BorderThickness="1"
+        DragOver="OnWindowDragOver"
+        Drop="OnWindowDrop"
+        KeyDown="OnWindowKeyDown">
+    <Grid Background="#090C10">
+        <!-- Lớp giao diện QUANGLN Player AI Vietsub & AI Lồng tiếng -->
+        <Border x:Name="PlayerBrowserHost" Background="#090C10" />
+
+        <!-- Lớp giải mã phần cứng libmpv-2.dll dự phòng (căn khớp chính xác vùng #video-stage, không bao giờ đè thanh điều khiển) -->
+        <Border x:Name="NativeMpvContainer"
+                Visibility="Collapsed"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="#000000">
+            <media:MpvVideoHost x:Name="VideoHost" />
+        </Border>
+
+        <!-- Vùng kéo di chuyển cửa sổ không viền trên thanh tiêu đề (chừa rộng 460px bên phải cho chấm màu + Mở file + nút cửa sổ) -->
+        <Border Height="42"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Stretch"
+                Margin="0,0,460,0"
+                Background="Transparent"
+                MouseLeftButtonDown="OnTitleBarDragMouseDown" />
+    </Grid>
+</Window>

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- TargetFramework và PlatformTarget kế thừa từ Directory.Build.props -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <RollForward>Major</RollForward>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QUANGLNBrowser.Core\QUANGLNBrowser.Core.csproj" />
+    <ProjectReference Include="..\QUANGLNBrowser.Security\QUANGLNBrowser.Security.csproj" />
+    <ProjectReference Include="..\QUANGLNBrowser.Network\QUANGLNBrowser.Network.csproj" />
+    <ProjectReference Include="..\QUANGLNBrowser.Engine\QUANGLNBrowser.Engine.csproj" />
+    <ProjectReference Include="..\QUANGLNBrowser.Media\QUANGLNBrowser.Media.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4370.26" />
+    <PackageReference Include="QRCoder" Version="1.9.0" />
+    <PackageReference Include="WPF-UI" Version="3.0.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\app.ico" />
+    <None Include="Assets\home.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Assets\player.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Assets\hls.light.min.js" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Assets\logo.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
